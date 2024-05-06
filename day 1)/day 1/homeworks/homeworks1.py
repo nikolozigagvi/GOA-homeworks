@@ -1,0 +1,1 @@
+print("nikoloz gagvishvili,ana gagvishvili,nini gagvishvili,levan gagvishvili,yuliana khavtasi")
