@@ -1,0 +1,1 @@
+print("i think goa is the best acadamy in goas  teachers are the best they care about children and there are  lot of academies but in goa they really care about children and they do fun stuff")
