@@ -1,0 +1,23 @@
+#a-1{
+color: aqua
+}
+
+.a{
+text-decoration: none;
+}
+
+.p:hover{
+text-decoration: underline;
+}
+
+.p:visited{
+color: red;
+}
+
+.h1:hover{
+    background-color: blue;
+}
+
+.u{
+font-style: italic;
+}
