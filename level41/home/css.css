@@ -1,0 +1,25 @@
+#nika{
+    border-radius: 30;
+    background-color: aqua;
+}
+
+#nika2{
+    color: red;
+    border-radius: 30%;
+    border-top-left-radius: 30%;
+    border-top-right-radius: 30%;
+    border-bottom-left-radius: 30%;
+    border-bottom-right-radius: 30%;
+}
+
+#solid{
+    border: solid;
+    color: black;
+    width: 50px;
+    text-align: center;
+    font-style: italic;
+}
+
+#radius{
+    border-radius: 20%;
+}
