@@ -1,0 +1,18 @@
+#div-1{
+    height: 1000px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+}
+
+#div-2{
+    height: 100px;
+    width: 100px;
+    background-color: blue;
+}
+
+#div-3{
+    height: 100px;
+    width: 100px;
+    background-color: aqua;
+}

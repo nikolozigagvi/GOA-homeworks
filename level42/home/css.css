@@ -1,0 +1,37 @@
+div{
+    border: none;
+    border-radius: 30%;
+}
+
+
+
+#p-1{
+margin: 30%;
+}
+
+#nika:hover{
+    margin: 20px;
+    padding: 30px , 20px , 30px , 20px;
+    color: brown;
+    background-color: blue;
+    font-family: fantasy;
+}
+
+#div-1{
+    height: 1000px;
+    display: flex;
+    justify-content: center;
+    align-items: flex-end;
+}
+
+#div-2{
+    height: 100px;
+    width: 100px;
+    background-color: blue;
+}
+
+#div-3{
+    height: 100px;
+    width: 100px;
+    background-color: aqua;
+}
