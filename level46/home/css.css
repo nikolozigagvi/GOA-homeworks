@@ -1,0 +1,37 @@
+button{
+    width: 50px;
+    height: 50px;
+    background-color: aqua;
+
+}
+
+button:hover{
+ transition: background-color  green 2s;
+}
+
+img{
+width: 200px;
+height: 200px;
+}
+
+img:hover{
+    transform: scale(1.2);
+}
+
+p{
+    color: aqua;
+    background-color: red;
+}
+
+p:hover{
+    transition: color blue;
+}
+
+#buttun2{
+color :gray;
+background-color: aqua;
+}
+
+#button:hover{
+    transform: scale(0.88);
+}

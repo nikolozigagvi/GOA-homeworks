@@ -1,0 +1,10 @@
+#hello{
+    height: 20px ;
+    width:20px ;
+    color: white;
+    background-color: black;
+}
+
+#hello:active{
+transition: height 25px 1s; color: black 2s; background-color: whitesmoke 2s;
+}
