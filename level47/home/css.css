@@ -1,0 +1,85 @@
+body{
+    width: 20px;
+    height: 20px;
+    color: aquamarine;
+    animation-name: nika;
+    animation-duration:4s ;
+}
+
+@keyframes nika{
+    from{
+        transform: rotate(40%);
+    }
+
+    to{
+        transform: rotate(40%);
+    }
+}
+
+#nik{
+    width: 50px;
+    height: 50px;
+    background-color: aqua;
+    animation-name:nikas;
+    animation-duration: 4s;
+}
+
+@keyframes nikas{
+ from{
+    transform: background-color red;
+ }
+
+ to{
+    transform:background-color green;
+ }
+}
+
+
+p{
+    width: 40px;
+    height: 40px;
+    color:blue;
+    background-color: aqua;
+    animation-name:niks;
+    animation-duration: 5s;
+}
+
+@keyframes niks{
+    100%{
+        transform: rotate(deg360);
+    }
+}
+
+#rotate{
+    width: 12px;
+    height: 13px;
+    color: azure;
+    background-color: aqua;
+    animation-name: njia;
+    animation-duration:10s 
+}
+
+@keyframes nija{
+    50%{
+        transform: scale(2);
+    }
+
+    100%{
+        transform: scale(1);
+    }
+}
+
+#da-leon{
+    width: 100px;
+    height: 100px;
+    color: aqua;
+    animation-delay:2s ;
+    animation-duration: 5s;
+    animation-name: kok;
+}
+
+@keyframes kok{
+    100%{
+        transform: scale(3); transition: red;
+    }
+}
