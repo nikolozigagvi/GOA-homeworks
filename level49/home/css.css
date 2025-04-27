@@ -1,0 +1,107 @@
+body {
+height: 100vh;
+}
+
+#main_div {
+    height: 20px;
+    width: 50px;
+    display: grid;
+    grid-template-columns:12.5% ,12.5% ,12.5% ,12.5% ,12.5% ,12.5% ,12.5% ,12.5%  ;
+    grid-template-rows: 12.5% ,12.5% ,12.5% ,12.5% ,12.5% ,12.5% ,12.5% ,12.5% ;
+}
+
+#main_div div {
+    border-radius: 15px;
+    margin: 5px;
+}
+
+#div-1 {
+    background-color: yellow;
+    grid-area: 1 / 3 / 2/ 1
+}
+
+#div-2 {
+    background-color: yellow;
+    grid-area: 1 / 1 / 1/ 1
+}
+#div-3 {
+    background-color: yellow;
+    grid-area: 1 / 3 / 2/ 1
+}
+#div-4 {
+    background-color: yellow;
+    grid-area: 3 / 3 / 3/ 3
+}
+#div-5 {
+    background-color: yellow;
+    grid-area: 1 / 5 / 1/ 5
+}
+#div-6 {
+    background-color: yellow;
+    grid-area: 3 / 3 / 3/ 3
+}
+#div-7 {
+    background-color: yellow;
+    grid-area: 1 / 1 / 1/ 1
+}
+#div-8 {
+    background-color: yellow;
+    grid-area: 1 / 2 / 1/ 2
+}
+
+
+#Main-div {
+    border-radius: 30px;
+    margin: 15px;
+}
+
+
+#div5 {
+     background-color: yellow;
+     grid-area: 1 / 5 / 1 / 5;
+}
+
+#div6 {
+    background-color: green;
+    grid-area: 1 / 5 / 1 / 5;
+}
+
+#div7 {
+    background-color: blueviolet;
+    grid-area: 1 / 5 / 1 / 5;
+}
+
+#div8 {
+    background-color: blue;
+    grid-area: 1 / 5 / 1 / 5;
+}
+
+
+#div9 {
+    background-color: gray;
+    grid-area: 1 / 5 / 1 / 5;
+}
+
+
+#MAin_div {
+height: 100px;
+width: 50px;
+}
+
+
+#doo {
+background-color: aqua;
+grid-area: 2 / 2 / 2 / 2;
+}
+#doo1 {
+    background-color: aqua;
+    grid-area: 2 / 2 / 2 / 2;
+    }
+    #doo2 {
+        background-color: aqua;
+        grid-area: 2 / 2 / 2 / 2;
+        }
+        #doo3 {
+            background-color: aqua;
+            grid-area: 2 / 2 / 2 / 2;
+            }
