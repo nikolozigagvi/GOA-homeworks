@@ -1,0 +1,29 @@
+#main-div {
+    height:50px;
+    width: 50px;
+}
+
+#main-div {
+    background-color: aqua;
+    grid-row: 1/2/3/4;
+}
+
+#main1{
+    background-color: aqua;
+    grid-column: 1/2/1/4;
+}
+
+#main3{
+    background-color: aqua;
+    grid-column: 4/2/1/4;
+}
+
+#main3{
+    background-color: aqua;
+    grid-column: 3/2/1/4;
+}
+
+#main4{
+    background-color: aqua;
+    grid-column: 1/4/1/4;
+}
