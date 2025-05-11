@@ -1,9 +1,8 @@
 body{
-    width: 20px;
     height: 20px;
-    color: aquamarine;
-    animation-name: nika;
+    width: 20px;
     animation-duration:4s ;
+    animation-name: nika;
 }
 
 @keyframes nika{

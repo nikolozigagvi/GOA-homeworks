@@ -2,7 +2,7 @@
 
 
 name = bool(input("enter your name : "))
-print(bool(name))
+print(bool("nikoloz"))
 
 # 2 დავალება :  მომხმარებელს შემატანინეთ რიცხვი თუ რიცხვი იყო 0 მეტი და 10 ნაკლები მაშინ დაგვიპრინტოს True ხოლო სხვა შემთხვევაში False
 

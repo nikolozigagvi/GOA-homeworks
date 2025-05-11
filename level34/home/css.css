@@ -1,0 +1,22 @@
+body{
+padding: 60;
+margin: 0%;
+color: brown;
+background-color: aqua;
+text-align: center;
+font-family: cursive;
+font-size: large;
+border: none;
+box-sizing: border-box;
+border-top: 2%;
+font-style: georgian;
+}
+ 
+form{
+padding: 8%;
+border: 45%;
+color: red;
+box-sizing: border-box;
+
+}
+

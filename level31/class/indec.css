@@ -1,0 +1,16 @@
+*{
+  margin: 30px;
+}
+
+
+li{
+list-style-type: georgian;
+
+
+    color: aqua;
+    font-size: 2.4em;
+    font-family: cursive;
+    letter-spacing: 10px;
+ }
+
+
