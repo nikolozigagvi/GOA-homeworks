@@ -17,3 +17,6 @@
 
 
  object3.isgoastudent = true
+
+
+ 
