@@ -4,6 +4,10 @@ function addPoint() {
   points++;
   updatePointsDisplay();
 }
+function add100(){
+  points + 100
+  updatePointsDisplay();
+}
 
 function buySword() {
   if (points >= 10) {

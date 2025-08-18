@@ -21,11 +21,13 @@ function slidedshowidk(){
 }
 
 previous.addEventListener("click" , function(){
-    seeindex(index - 1)
+    index--
+    slidedshowidk(index)
 })
 
 next.addEventListener("click" , function(){
-    seeindex(index + 1)
+    index++
+    slidedshowidk(index)
 })
 
 //bubbling - იწყებს ბოლოდან და ამთავრებს დასაწყისში.
