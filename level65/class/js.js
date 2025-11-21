@@ -1,11 +1,7 @@
 let div = document.getElementById("div-main")
-let div2 = document.getElementById("div-main2")
-let div3 = document.getElementById("div-main3")
+
 
 let leftpos = 0
-let downpos = 0
-let uppos = 0
-
 
 
 
@@ -16,27 +12,7 @@ function myanimations(){
     clearInterval("myint")
   }
 }
-
-function myanimations(){
-  downpospos +=100
-  div.style.left = downpos + "px"
-  if(downpos = 600){
-    clearInterval("myint")
-  }
-}
-
-
-function myanimations(){
-  uppos +=100
-  div.style.left = uppos + "px"
-  if(uppos = 600){
-    clearInterval("myint")
-  }
-}
-
-
-
-let myint = setInterval(myanimations , 100)
+let myint = setInterval(myanimations , 1000)
 
 
 

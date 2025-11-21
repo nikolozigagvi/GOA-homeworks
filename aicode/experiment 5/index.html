@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>YourAI — VS Code AI Assistant</title>
+<style>
+:root{--bg:#0f1724;--panel:#0b1220;--muted:#9aa5b1;--accent:#0ea5e9;--green:#22c55e;--radius:10px;--glass: rgba(255,255,255,0.03);--code-bg:#001122;}
+[data-theme="light"]{--bg:#f6f8fa;--panel:#ffffff;--muted:#50606b;--accent:#2563eb;--green:#16a34a;--glass: rgba(0,0,0,0.03);--code-bg:#f4f7fb;}
+[data-theme="terminal"]{--bg:#000000;--panel:#021212;--muted:#19ff19;--accent:#19ff19;--green:#19ff19;--glass: rgba(255,255,255,0.02);--code-bg:#001000;}
+*{box-sizing:border-box} html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,'Segoe UI',Roboto,'Helvetica Neue',Arial;} body{background:linear-gradient(180deg,var(--bg), #071024);color:#e6eef6;}
+.app{display:grid;grid-template-columns:260px 1fr;gap:18px;padding:18px;height:100vh}
+.sidebar{background:var(--panel);border-radius:var(--radius);padding:14px;display:flex;flex-direction:column;gap:12px}
+.brand{display:flex;gap:10px;align-items:center}
+.logo{width:36px;height:36px;border-radius:8px;background:linear-gradient(135deg,var(--accent),#7c3aed);display:flex;align-items:center;justify-content:center;font-weight:700}
+.brand h1{margin:0;font-size:14px}
+.sidebar .btn{padding:9px 10px;border-radius:8px;background:transparent;border:1px solid transparent;color:var(--muted);cursor:pointer;text-align:left}
+.sidebar .btn.active{background:linear-gradient(90deg,rgba(255,255,255,0.02),transparent);border-color:rgba(255,255,255,0.03);color:var(--accent)}
+.sidebar .small{font-size:12px;color:var(--muted)}
+.panel{display:flex;flex-direction:column;border-radius:var(--radius);overflow:hidden;background:linear-gradient(180deg, rgba(255,255,255,0.02), transparent);}
+.header{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.03)}
+.header .title{display:flex;gap:10px;align-items:center}
+.tabs{display:flex;gap:8px}
+.tab{padding:8px 12px;border-radius:8px;background:transparent;border:1px solid transparent;color:var(--muted)}
+.chat-wrap{display:flex;flex-direction:column;flex:1;min-height:0}
+.messages{padding:18px;overflow:auto;flex:1;display:flex;flex-direction:column;gap:12px}
+.msg{max-width:78%;padding:12px;border-radius:10px;line-height:1.4}
+.msg.user{align-self:flex-end;background:linear-gradient(90deg, rgba(255,255,255,0.03), rgba(255,255,255,0.01));border:1px solid rgba(255,255,255,0.02)}
+.msg.assistant{align-self:flex-start;background:linear-gradient(90deg, rgba(0,0,0,0.04), transparent);border:1px solid rgba(255,255,255,0.02)}
+.meta{font-size:12px;color:var(--muted);margin-bottom:6px}
+.composer{padding:12px;border-top:1px solid rgba(255,255,255,0.03);display:flex;gap:10px;align-items:center}
+.input{flex:1;background:var(--panel);border-radius:8px;padding:10px;min-height:46px;color:inherit;border:1px solid rgba(255,255,255,0.02)}
+.controls{display:flex;gap:8px}
+.btn-primary{background:linear-gradient(90deg,var(--accent),#7c3aed);padding:10px 12px;border-radius:8px;border:none;color:white;cursor:pointer}
+.btn-ghost{background:transparent;border:1px solid rgba(255,255,255,0.03);padding:8px 10px;border-radius:8px;color:var(--muted);cursor:pointer}
+pre.code{background:var(--code-bg);padding:10px;border-radius:8px;overflow:auto;font-family:SFMono-Regular,Menlo,monospace;font-size:13px;color:#dbeafe}
+.typing{display:flex;gap:4px;align-items:center}
+.dot{width:7px;height:7px;border-radius:50%;background:var(--muted);opacity:0.6;animation:blink 1s infinite}
+.dot:nth-child(2){animation-delay:0.15s}
+.dot:nth-child(3){animation-delay:0.3s}
+@keyframes blink{0%{opacity:0.2}50%{opacity:1}100%{opacity:0.2}}
+.voice-btn{position:fixed;bottom:20px;right:20px;padding:12px 18px;border-radius:50%;font-size:20px;background:var(--accent);color:white;border:none;cursor:pointer;box-shadow:0 0 10px rgba(0,0,0,0.3)}
+@media(max-width:900px){.app{grid-template-columns:1fr;gap:10px;padding:12px}.sidebar{order:2;flex-direction:row;overflow:auto}.panel{order:1}.msg{max-width:100%}}
+</style>
+</head>
+<body data-theme="dark">
+<div class="app">
+<aside class="sidebar">
+<div class="brand"><div class="logo">YA</div><div><h1>YourAI</h1><div class="small">VS Code assistant</div></div></div>
+<button class="btn active" id="new-chat">+ New Chat</button>
+<div class="small">Chats</div>
+<div id="chats" style="display:flex;flex-direction:column;gap:8px;overflow:auto;padding-right:6px;height:220px"></div>
+<div style="flex:1"></div>
+<div style="display:flex;gap:8px;align-items:center;justify-content:space-between">
+<div style="display:flex;gap:8px;align-items:center">
+<button class="btn-ghost" id="theme-toggle">Theme</button>
+<button class="btn-ghost" id="terminal-toggle">Terminal</button>
+</div>
+<button class="btn-ghost" id="clear-storage">Clear</button>
+</div>
+</aside>
+<main class="panel">
+<div class="header">
+<div class="title"><div style="font-weight:600">YourAI — Assistant</div><div class="tabs"><div class="tab">Chat</div><div class="tab">Tools</div><div class="tab">Settings</div></div></div>
+<div style="display:flex;gap:10px;align-items:center"><div class="chip">Model: <strong>local-mock</strong></div><div class="chip" id="stored-count">0 messages</div></div>
+</div>
+<div class="chat-wrap">
+<div class="messages" id="messages" aria-live="polite"></div>
+<div class="composer">
+<div contenteditable="true" class="input" id="input" role="textbox" placeholder="Ask anything — code, ideas, or talk..." onkeydown="handleKey(event)"></div>
+<div class="controls"><button class="btn-ghost" id="example">Example</button><button class="btn-primary" id="send">Send</button></div>
+</div>
+</div>
+</main>
+</div>
+<template id="msg-user"><div class="msg user"><div class="meta">You • <span class="time"></span></div><div class="content"></div></div></template>
+<template id="msg-assistant"><div class="msg assistant"><div class="meta">YourAI • <span class="time"></span></div><div class="content"></div></div></template>
+<button id="voiceBtn" class="voice-btn">🎤 Talk</button>
+<script>
+const inputEl=document.getElementById('input'),sendBtn=document.getElementById('send'),messagesEl=document.getElementById('messages'),storedCount=document.getElementById('stored-count');
+const LS_KEY='yourai_messages_v3';
+function now(){return new Date().toLocaleTimeString();}
+function createMsgNode(templateId,text){const tpl=document.getElementById(templateId);const node=tpl.content.firstElementChild.cloneNode(true);node.querySelector('.time').textContent=now();node.querySelector('.content').innerHTML=renderText(text);attachCodeCopy(node.querySelector('.content'));return node;}
+function renderText(text){return text.replace(/```([\s\S]*?)```/g,(m,p1)=>`<pre class="code"><code>${p1}</code></pre>`).replace(/&/g,'&amp;').replace(/</g,'&lt;').replace(/>/g,'&gt;').replace(/\n/g,'<br>');}
+function attachCodeCopy(contentNode){contentNode.querySelectorAll('pre.code').forEach(pre=>{if(pre.dataset.copyAttached)return;pre.dataset.copyAttached='1';const btn=document.createElement('button');btn.textContent='Copy';btn.className='btn-ghost';btn.style.margin='6px';btn.onclick=()=>{navigator.clipboard.writeText(pre.innerText).then(()=>{btn.textContent='Copied'})};pre.parentNode.insertBefore(btn,pre);});}
+function pushMessage(role,text){messagesEl.appendChild(createMsgNode(role==='user'?'msg-user':'msg-assistant',text));messagesEl.scrollTop=messagesEl.scrollHeight;saveMessage({role,text,time:Date.now()});updateStoredCount();}
+function saveMessage(obj){const arr=JSON.parse(localStorage.getItem(LS_KEY)||'[]');arr.push(obj);localStorage.setItem(LS_KEY,JSON.stringify(arr));}
+function loadMessages(){JSON.parse(localStorage.getItem(LS_KEY)||'[]').forEach(m=>pushMessage(m.role,m.text));updateStoredCount();}
+function updateStoredCount(){storedCount.textContent=`${JSON.parse(localStorage.getItem(LS_KEY)||'[]').length} messages`;}
+async function sendToAPI(prompt){await sleep(700+Math.random()*600);if(/how are you|how r u|hru/i.test(prompt))return"I'm doing great and ready to help you! How are *you* feeling today?";if(/who are you|what are you/i.test(prompt))return"I'm YourAI — your personal assistant. I chat, code, generate ideas, and speak like a real friend!";if(/hello|hi|yo|hey/i.test(prompt))return"Hey! 👋 What's up?";if(/python|code|function|js|javascript/i.test(prompt))return"You want code help? Tell me language and task, I can make functions for you!";if(/reverse.*python/i.test(prompt))return"Here's the Python reverse function:\n```python\ndef reverse_string(s):\n    return s[::-1]\n```\nEfficient and concise!";const responses=["Interesting! Tell me more.","Oh really? That sounds cool!","I get you. Want help with something?","Got it. What should we do next?","Sounds good! What's your next idea?","Sure! Let's chat more."];return responses[Math.floor(Math.random()*responses.length)];}
+function sleep(ms){return new Promise(r=>setTimeout(r,ms));}
+sendBtn.onclick=async()=>{const text=inputEl.innerText.trim();if(!text)return;inputEl.innerText='';pushMessage('user',text);await handleAIResponse(text);}
+document.getElementById('example').onclick=()=>{inputEl.innerText=`Give me a Python function to reverse a string and explain it.`;inputEl.focus();}
+function handleKey(e){if(e.key==='Enter'&&!e.shiftKey){e.preventDefault();sendBtn.click();}}
+// === Voice TTS and STT ===
+function aiSpeak(text){const utter=new SpeechSynthesisUtterance(text);utter.rate=1;utter.pitch=1;utter.volume=1;speechSynthesis.speak(utter);}
+let recognizing=false,recognizer;
+if('webkitSpeechRecognition' in window){recognizer=new webkitSpeechRecognition();recognizer.lang='en-US';recognizer.continuous=false;recognizer.interimResults=false;
+recognizer.onresult=async e=>{const speech=e.results[0][0].transcript;pushMessage('user',speech);await handleAIResponse(speech);};
+recognizer.onend=()=>recognizing=false;}
+document.getElementById('voiceBtn').onclick=()=>{if(!recognizer)return alert('Voice not supported');if(!recognizing){recognizing=true;recognizer.start();document.getElementById('voiceBtn').innerText='🎙 Listening...';}else{recognizing=false;recognizer.stop();document.getElementById('voiceBtn').innerText='🎤 Talk';}};
+async function handleAIResponse(prompt){const reply=await sendToAPI(prompt);pushMessage('assistant',reply);aiSpeak(reply);}
+// Theme
+document.getElementById('theme-toggle').onclick=()=>{document.body.setAttribute('data-theme',document.body.getAttribute('data-theme')==='dark'?'light':'dark');};
+document.getElementById('terminal-toggle').onclick=()=>{document.body.setAttribute('data-theme',document.body.getAttribute('data-theme')==='terminal'?'dark':'terminal');};
+// Clear & New Chat
+document.getElementById('clear-storage').onclick=()=>{if(confirm('Clear saved messages?')){localStorage.removeItem(LS_KEY);messagesEl.innerHTML='';updateStoredCount();}};
+document.getElementById('new-chat').onclick=()=>{localStorage.removeItem(LS_KEY);messagesEl.innerHTML='';updateStoredCount();alert('New chat started!');};
+loadMessages();
+</script>
+</body>
+</html>

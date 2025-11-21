@@ -1,0 +1,98 @@
+body {
+    font-family: Arial, sans-serif;
+    background: #111;
+    color: #eee;
+    margin: 0;
+    padding: 0;
+}
+
+header {
+    background: #222;
+    text-align: center;
+    padding: 20px;
+}
+
+.subtitle {
+    color: #bbb;
+    font-size: 14px;
+}
+
+nav {
+    background: #000;
+    padding: 10px 0;
+}
+
+nav ul {
+    list-style: none;
+    display: flex;
+    justify-content: center;
+    gap: 25px;
+    margin: 0;
+    padding: 0;
+}
+
+nav a {
+    color: #0bc;
+    text-decoration: none;
+    font-weight: bold;
+}
+
+#hero {
+    text-align: center;
+    padding: 80px 20px;
+    background: linear-gradient(to bottom, #222, #111);
+}
+
+#hero button {
+    padding: 12px 25px;
+    background: #0bc;
+    border: none;
+    font-size: 18px;
+    cursor: pointer;
+    border-radius: 6px;
+    color: black;
+    font-weight: bold;
+}
+
+section {
+    padding: 40px 20px;
+    max-width: 900px;
+    margin: auto;
+}
+
+h2 {
+    color: #0bc;
+    border-left: 4px solid #0bc;
+    padding-left: 10px;
+}
+
+ul li {
+    margin: 8px 0;
+}
+
+.ascii-box {
+    background: #000;
+    padding: 20px;
+    border: 1px solid #0bc;
+    overflow-x: auto;
+    white-space: pre;
+    margin-bottom: 20px;
+}
+
+.download-btn {
+    display: inline-block;
+    padding: 12px 20px;
+    background: #0bc;
+    color: black;
+    font-weight: bold;
+    text-decoration: none;
+    border-radius: 6px;
+}
+
+footer {
+    text-align: center;
+    padding: 20px;
+    background: #000;
+    color: #555;
+    margin-top: 30px;
+}

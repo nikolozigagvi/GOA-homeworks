@@ -13,15 +13,15 @@ function buySword() {
   if (points >= 10) {
     points -= 10;
     updatePointsDisplay();
-    document.getElementById("message").innerText = " Sword bought! Mobs will spawn!";
+    document.getElementById("message").Text = " Sword bought! Mobs will spawn!";
     spawnMob(); 
   } else {
-    document.getElementById("message").innerText = " Not enough points!";
+    document.getElementById("message").Text = " Not enough points!";
   }
 }
 
 function updatePointsDisplay() {
-  document.getElementById("pointsDisplay").innerText = points;
+  document.getElementById("pointsDisplay").Text = points;
 }
 
 function spawnMob() {
