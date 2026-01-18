@@ -1,0 +1,244 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>Mini Visual Studio</title>
+
+<style>
+* { box-sizing: border-box; }
+
+body {
+  margin: 0;
+  font-family: Consolas, monospace;
+  background: #1e1e1e;
+  color: #d4d4d4;
+  height: 100vh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* TOP BAR */
+.topbar {
+  background: #2d2d30;
+  padding: 8px 12px;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.topbar button {
+  background: #0e639c;
+  color: white;
+  border: none;
+  padding: 6px 12px;
+  border-radius: 4px;
+  cursor: pointer;
+}
+
+.topbar button:hover {
+  background: #1177bb;
+}
+
+/* MAIN LAYOUT */
+.main {
+  flex: 1;
+  display: grid;
+  grid-template-columns: 180px 1fr 1fr;
+}
+
+/* FILE LIST */
+.sidebar {
+  background: #252526;
+  border-right: 1px solid #333;
+  padding: 10px;
+}
+
+.file {
+  padding: 6px;
+  cursor: pointer;
+  border-radius: 4px;
+}
+
+.file:hover,
+.file.active {
+  background: #373737;
+}
+
+/* EDITOR */
+.editor {
+  background: #1e1e1e;
+  border-right: 1px solid #333;
+  display: flex;
+}
+
+textarea {
+  flex: 1;
+  background: #1e1e1e;
+  color: #d4d4d4;
+  border: none;
+  padding: 10px;
+  font-size: 14px;
+  resize: none;
+  outline: none;
+}
+
+/* PREVIEW */
+.preview {
+  background: white;
+}
+
+iframe {
+  width: 100%;
+  height: 100%;
+  border: none;
+}
+
+/* CONSOLE */
+.console {
+  height: 140px;
+  background: #111;
+  color: #0f0;
+  padding: 6px;
+  font-size: 13px;
+  overflow-y: auto;
+  border-top: 1px solid #333;
+}
+</style>
+</head>
+
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div>🧠 Mini Visual Studio</div>
+  <div>
+    <button onclick="run()">▶ Run</button>
+    <button onclick="clearConsole()">🧹 Clear Console</button>
+    <button onclick="toggleTheme()">🌙/☀️</button>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+  <!-- FILE LIST -->
+  <div class="sidebar">
+    <div class="file active" onclick="openFile('html', this)">index.html</div>
+    <div class="file" onclick="openFile('css', this)">style.css</div>
+    <div class="file" onclick="openFile('js', this)">script.js</div>
+  </div>
+
+  <!-- EDITOR -->
+  <div class="editor">
+    <textarea id="editor"></textarea>
+  </div>
+
+  <!-- PREVIEW -->
+  <div class="preview">
+    <iframe id="preview"></iframe>
+  </div>
+</div>
+
+<!-- CONSOLE -->
+<div class="console" id="console">Console ready.</div>
+
+<script>
+const editor = document.getElementById("editor");
+const preview = document.getElementById("preview");
+const consoleBox = document.getElementById("console");
+
+let darkMode = true;
+let currentFile = "html";
+
+/* FILE DATA */
+const files = {
+  html: "<h1>Hello World</h1>\n<p>Edit HTML, CSS and JS, then click Run.</p>",
+  css: "body { font-family: Arial; background: #f4f4f4; }",
+  js: "console.log('JavaScript is running');"
+};
+
+/* FILE SWITCH */
+function openFile(type, el) {
+  saveFile();
+  currentFile = type;
+  editor.value = files[type];
+  document.querySelectorAll(".file").forEach(f => f.classList.remove("active"));
+  el.classList.add("active");
+}
+
+/* SAVE */
+function saveFile() {
+  files[currentFile] = editor.value;
+}
+
+/* RUN CODE */
+function run() {
+  saveFile();
+  clearConsole();
+
+  const html = `
+<!DOCTYPE html>
+<html>
+<head>
+<style>
+${files.css}
+</style>
+</head>
+<body>
+
+${files.html}
+
+<script>
+(function(){
+  const oldLog = console.log;
+  console.log = function(...args){
+    parent.postMessage(args.join(" "), "*");
+    oldLog.apply(console, args);
+  };
+
+  window.onerror = function(msg){
+    parent.postMessage("ERROR: " + msg, "*");
+  };
+
+  try {
+    ${files.js}
+  } catch(e) {
+    parent.postMessage("ERROR: " + e.message, "*");
+  }
+})();
+<\/script>
+
+</body>
+</html>
+`;
+
+  preview.srcdoc = html;
+}
+
+/* CONSOLE LISTENER */
+window.addEventListener("message", e => {
+  consoleBox.innerHTML += "<br>> " + e.data;
+  consoleBox.scrollTop = consoleBox.scrollHeight;
+});
+
+/* CONSOLE CLEAR */
+function clearConsole() {
+  consoleBox.innerHTML = "Console cleared.";
+}
+
+/* THEME TOGGLE */
+function toggleTheme() {
+  darkMode = !darkMode;
+
+  document.body.style.background = darkMode ? "#1e1e1e" : "#eee";
+  document.body.style.color = darkMode ? "#d4d4d4" : "#111";
+
+  editor.style.background = darkMode ? "#1e1e1e" : "#fff";
+  editor.style.color = darkMode ? "#d4d4d4" : "#111";
+}
+
+/* INIT */
+openFile("html", document.querySelector(".file"));
+</script>
+
+</body>
+</html>

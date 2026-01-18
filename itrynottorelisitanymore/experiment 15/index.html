@@ -1,0 +1,248 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>ULTIMATE Holiday Generator</title>
+
+<style>
+:root{
+    --bg:#141E30;
+    --card:#1f2a44;
+    --accent:#00ffcc;
+    --text:white;
+}
+.light{
+    --bg:#f4f4f4;
+    --card:#ffffff;
+    --accent:#0077ff;
+    --text:#000;
+}
+
+body{
+    margin:0;
+    font-family:Arial, sans-serif;
+    background:linear-gradient(120deg,var(--bg),#000);
+    color:var(--text);
+    min-height:100vh;
+    display:flex;
+    justify-content:center;
+    align-items:center;
+}
+
+.container{
+    width:420px;
+    background:var(--card);
+    padding:20px;
+    border-radius:18px;
+    box-shadow:0 0 30px rgba(0,0,0,.7);
+    text-align:center;
+}
+
+h1{margin:5px 0;}
+
+.clock{
+    font-size:14px;
+    opacity:.8;
+}
+
+.holiday-box{
+    background:rgba(255,255,255,.1);
+    padding:15px;
+    border-radius:12px;
+    margin:10px 0;
+    min-height:55px;
+}
+
+button,select,input{
+    margin:5px;
+    padding:8px 12px;
+    border:none;
+    border-radius:8px;
+    cursor:pointer;
+}
+
+button{
+    background:var(--accent);
+    color:black;
+}
+
+button:hover{opacity:.8;}
+
+.calendar-grid{
+    display:grid;
+    grid-template-columns:repeat(7,1fr);
+    gap:4px;
+    font-size:13px;
+}
+
+.day{
+    background:rgba(255,255,255,.1);
+    padding:6px 0;
+    border-radius:6px;
+    cursor:pointer;
+}
+
+.today{
+    background:var(--accent);
+    color:black;
+    font-weight:bold;
+}
+
+.log{
+    max-height:90px;
+    overflow:auto;
+    font-size:12px;
+    background:rgba(0,0,0,.3);
+    padding:8px;
+    border-radius:8px;
+    text-align:left;
+}
+
+.favorite{
+    color:gold;
+    font-size:18px;
+    cursor:pointer;
+}
+
+</style>
+</head>
+<body>
+
+<div class="container">
+<h1>🎉 ULTIMATE HOLIDAYS</h1>
+<div class="clock" id="clock"></div>
+
+<div class="holiday-box">
+<span id="holiday">Holiday of the Day loading...</span>
+<div class="favorite" onclick="saveFavorite()">⭐</div>
+</div>
+
+<select id="category">
+<option value="all">All Categories</option>
+<option value="food">Food</option>
+<option value="fun">Fun</option>
+<option value="religious">Religious</option>
+<option value="tech">Tech</option>
+<option value="animal">Animal</option>
+<option value="meme">Meme</option>
+<option value="official">Official</option>
+</select>
+
+<br>
+
+<button onclick="randomHoliday()">🎲 Random</button>
+<button onclick="randomCategory()">🗂 Random Category</button>
+<button onclick="toggleMode()">🌓 Mode</button>
+
+<br>
+
+<input placeholder="Search holiday..." oninput="searchHoliday(this.value)">
+
+<div class="calendar">
+<h3 id="monthYear"></h3>
+<div class="calendar-grid" id="calendar"></div>
+</div>
+
+<h4>📜 History</h4>
+<div class="log" id="log"></div>
+
+</div>
+
+<script>
+const holidays={
+food:[
+"Pizza Day 🍕","Burger Day 🍔","Taco Day 🌮","Ice Cream Day 🍦","Pancake Day 🥞",
+"Chocolate Day 🍫","Coffee Day ☕","Pasta Day 🍝"
+],
+fun:[
+"April Fools' Day","Talk Like a Pirate Day ☠️","Do Nothing Day",
+"Random Acts of Kindness Day","Compliment Day"
+],
+religious:[
+"Christmas 🎄","Easter","Orthodox Easter","Ramadan","Eid al-Fitr","Diwali 🪔"
+],
+tech:[
+"Programmers' Day 💻","Internet Day 🌐","Gaming Day 🎮","Retro Gaming Day"
+],
+animal:[
+"Dog Day 🐶","Cat Day 🐱","Animal Day 🐾","Bee Day 🐝"
+],
+meme:[
+"Brainrot Day 🧠","NPC Day 🤖","Touch Grass Day 🌱","Meme Day 😂"
+],
+official:[
+"New Year's Day","Labour Day","Independence Day","Victory Day","Human Rights Day"
+]
+};
+
+let currentHoliday="";
+
+function getAll(){
+    return Object.values(holidays).flat();
+}
+
+function randomHoliday(){
+    const cat=document.getElementById("category").value;
+    const list=cat==="all"?getAll():holidays[cat];
+    pick(list[Math.floor(Math.random()*list.length)]);
+}
+
+function randomCategory(){
+    const keys=Object.keys(holidays);
+    const cat=keys[Math.floor(Math.random()*keys.length)];
+    document.getElementById("category").value=cat;
+    randomHoliday();
+}
+
+function pick(h){
+    currentHoliday=h;
+    document.getElementById("holiday").innerText=h;
+    document.getElementById("log").innerHTML+="• "+h+"<br>";
+}
+
+function saveFavorite(){
+    let favs=JSON.parse(localStorage.getItem("favs")||"[]");
+    if(!favs.includes(currentHoliday)){
+        favs.push(currentHoliday);
+        localStorage.setItem("favs",JSON.stringify(favs));
+        alert("Saved ⭐");
+    }
+}
+
+function toggleMode(){
+    document.body.classList.toggle("light");
+}
+
+function searchHoliday(v){
+    const res=getAll().find(h=>h.toLowerCase().includes(v.toLowerCase()));
+    if(res) pick(res);
+}
+
+function clock(){
+    document.getElementById("clock").innerText=new Date().toLocaleTimeString();
+}
+setInterval(clock,1000);
+
+function calendar(){
+    const cal=document.getElementById("calendar");
+    const now=new Date();
+    document.getElementById("monthYear").innerText=
+        now.toLocaleString("default",{month:"long",year:"numeric"});
+    cal.innerHTML="";
+    ["Sun","Mon","Tue","Wed","Thu","Fri","Sat"].forEach(d=>{
+        cal.innerHTML+=`<div>${d}</div>`;
+    });
+    const first=new Date(now.getFullYear(),now.getMonth(),1).getDay();
+    for(let i=0;i<first;i++) cal.innerHTML+="<div></div>";
+    const days=new Date(now.getFullYear(),now.getMonth()+1,0).getDate();
+    for(let d=1;d<=days;d++){
+        cal.innerHTML+=`<div class="day ${d===now.getDate()?"today":""}" onclick="randomHoliday()">${d}</div>`;
+    }
+}
+
+pick(getAll()[new Date().getDate()%getAll().length]);
+calendar();
+</script>
+
+</body>
+</html>

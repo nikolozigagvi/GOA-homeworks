@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>INSANE TIME & BUSINESS SIMULATOR</title>
+<style>
+/* ========================== RESET ========================== */
+*{margin:0;padding:0;box-sizing:border-box}
+body{background:#0c0c0c;color:#eee;font-family:Arial,sans-serif;overflow-x:hidden}
+
+/* ========================== HEADER ========================== */
+header{background:#141414;padding:15px;border-bottom:4px solid #222;text-align:center}
+header h1{font-size:28px}
+header small{opacity:0.5;font-size:14px}
+
+/* ========================== NAV ========================== */
+nav{display:flex;gap:10px;padding:10px;background:#111;flex-wrap:wrap;justify-content:center}
+nav button{background:#222;color:white;border:none;padding:8px 14px;border-radius:6px;cursor:pointer;transition:0.3s}
+nav button:hover{background:#00ffcc;color:black}
+
+/* ========================== SECTIONS ========================== */
+section{display:none;padding:15px}
+section.active{display:block}
+
+/* ========================== MONEY/STATS ========================== */
+.stats{font-size:18px;margin-bottom:10px}
+.green{color:#00ff88}
+.red{color:#ff5555}
+
+/* ========================== BOXES ========================== */
+.box{background:#1b1b1b;padding:12px;border-radius:8px;border:1px solid #333;margin-bottom:12px}
+.btn{background:#333;color:white;border:none;padding:6px 10px;border-radius:5px;cursor:pointer;transition:0.2s}
+.btn:hover{background:#00adb5;color:black}
+
+/* ========================== LOG ========================== */
+#log{background:black;height:220px;overflow:auto;font-size:12px;padding:8px;border:1px solid #333}
+
+/* ========================== CHAOS ========================== */
+.chaos{color:#ff4444;font-weight:bold}
+
+/* ========================== FOOTER ========================== */
+footer{text-align:center;padding:15px;opacity:0.4}
+
+/* ========================== ANIMATIONS ========================== */
+@keyframes glow{
+    0%{text-shadow:0 0 5px #00ffcc;}
+    50%{text-shadow:0 0 20px #ff00ff;}
+    100%{text-shadow:0 0 5px #00ffcc;}
+}
+.glow{animation:glow 2s infinite}
+
+/* ========================== ADDITIONAL CHAOS STYLES ========================== */
+.popup{position:fixed;top:20%;left:50%;transform:translateX(-50%);background:#111;padding:15px;border:2px solid #00ffcc;border-radius:10px;z-index:999;color:white;opacity:0.95;font-size:14px}
+</style>
+</head>
+<body>
+
+<header>
+<h1 class="glow">INSANE TIME & BUSINESS SIMULATOR</h1>
+<small>Chaos, money, toilets, Disney, and Tralalelo</small>
+</header>
+
+<nav>
+<button onclick="show('time')">Time</button>
+<button onclick="show('biz')">Businesses</button>
+<button onclick="show('market')">Market</button>
+<button onclick="show('staff')">Employees</button>
+<button onclick="show('chaos')">Chaos</button>
+<button onclick="show('logSec')">Logs</button>
+</nav>
+
+<!-- ================= TIME ================= -->
+<section id="time" class="active">
+<div class="box">
+<div id="clock" style="font-size:42px"></div>
+<div id="date" style="opacity:0.6"></div>
+<div id="fakeTime" class="chaos"></div>
+</div>
+</section>
+
+<!-- ================= BUSINESSES ================= -->
+<section id="biz">
+<div class="stats green" id="money">$0</div>
+
+<div class="box">
+<b>🧴 Condom Company</b><br>
+Level: <span id="condLvl"></span><br>
+Stock: <span id="condStock"></span><br>
+<button class="btn" onclick="upgrade('condom')">Upgrade</button>
+</div>
+
+<div class="box">
+<b>🚽 Toilet Company</b><br>
+Level: <span id="toilLvl"></span><br>
+Stock: <span id="toilStock"></span><br>
+<button class="btn" onclick="upgrade('toilet')">Upgrade</button>
+</div>
+
+<div class="box">
+<b>🎬 Definitely Not Disney</b><br>
+Level: <span id="disLvl"></span><br>
+Lawsuits: <span id="laws"></span><br>
+<button class="btn" onclick="upgrade('disney')">Make Remake</button>
+</div>
+
+<div class="box">
+<b>🎶 Tralalelo Tralala</b><br>
+Reality Level: <span id="tralLvl"></span><br>
+<button class="btn" onclick="upgrade('tralala')">Do Something</button>
+</div>
+</section>
+
+<!-- ================= MARKET ================= -->
+<section id="market">
+<div class="box">
+Market Mood: <span id="marketMood"></span><br>
+Toilet Demand: <span id="toiletDemand"></span><br>
+Condom Demand: <span id="condomDemand"></span>
+</div>
+</section>
+
+<!-- ================= STAFF ================= -->
+<section id="staff">
+<div class="box">
+Employees: <span id="emps"></span><br>
+Salary/day: $<span id="salary"></span><br>
+<button class="btn" onclick="hire()">Hire</button>
+<button class="btn" onclick="fire()">Fire</button>
+</div>
+</section>
+
+<!-- ================= CHAOS ================= -->
+<section id="chaos">
+<div class="box chaos">
+Chaos Level: <span id="chaosLvl"></span><br>
+Current Effect: <span id="chaosEff"></span>
+</div>
+</section>
+
+<!-- ================= LOGS ================= -->
+<section id="logSec">
+<div id="log"></div>
+</section>
+
+<footer>no refunds • no balance • no logic</footer>
+
+<script>
+/* =================== NAV =================== */
+function show(id){
+document.querySelectorAll("section").forEach(s=>s.classList.remove("active"));
+document.getElementById(id).classList.add("active");
+}
+
+/* =================== TIME =================== */
+setInterval(()=>{
+let d=new Date();
+clock.textContent=d.toLocaleTimeString();
+date.textContent=d.toDateString();
+},1000);
+
+setInterval(()=>{
+let t=[
+"time is fake",
+"seconds sold separately",
+"tralala owns clocks",
+"delay detected",
+"tick but why",
+"everything is chaos",
+"money smells nice",
+"toilets produce happiness"
+];
+fakeTime.textContent=t[Math.floor(Math.random()*t.length)];
+},4000);
+
+/* =================== CORE DATA =================== */
+let money=500;
+let chaosLevel=1;
+let marketMood=1;
+let employees=5;
+
+let biz={
+condom:{lvl:1,stock:50,demand:1.1},
+toilet:{lvl:1,stock:40,demand:1.0},
+disney:{lvl:1,lawsuits:0},
+tralala:{lvl:1}
+};
+
+/* =================== LOG =================== */
+function log(txt){
+let l=document.createElement("div");
+l.textContent="["+new Date().toLocaleTimeString()+"] "+txt;
+log.appendChild(l);
+log.scrollTop=log.scrollHeight;
+}
+
+/* =================== UI =================== */
+function ui(){
+document.getElementById("money").textContent="$"+Math.floor(money);
+document.getElementById("condLvl").textContent=biz.condom.lvl;
+document.getElementById("condStock").textContent=biz.condom.stock;
+document.getElementById("toilLvl").textContent=biz.toilet.lvl;
+document.getElementById("toilStock").textContent=biz.toilet.stock;
+document.getElementById("disLvl").textContent=biz.disney.lvl;
+document.getElementById("laws").textContent=biz.disney.lawsuits;
+document.getElementById("tralLvl").textContent=biz.tralala.lvl;
+document.getElementById("emps").textContent=employees;
+document.getElementById("salary").textContent=employees*10;
+document.getElementById("chaosLvl").textContent=chaosLevel;
+document.getElementById("marketMood").textContent=marketMood.toFixed(2);
+document.getElementById("toiletDemand").textContent=biz.toilet.demand.toFixed(2);
+document.getElementById("condomDemand").textContent=biz.condom.demand.toFixed(2);
+}
+
+ui();
+
+/* =================== BUSINESS LOOP =================== */
+function tick(){
+biz.condom.stock+=biz.condom.lvl*employees;
+biz.toilet.stock+=biz.toilet.lvl*employees;
+
+let sale1=Math.min(biz.condom.stock,10*biz.condom.demand);
+let sale2=Math.min(biz.toilet.stock,8*biz.toilet.demand);
+
+biz.condom.stock-=sale1;
+biz.toilet.stock-=sale2;
+
+money+=sale1*5+sale2*7;
+
+money-=employees*10;
+
+if(Math.random()<0.1){
+biz.disney.lawsuits++;
+money-=50;
+log("Disney sued you");
+}
+
+if(Math.random()<0.05){
+chaosLevel++;
+log("Chaos increased");
+}
+
+if(Math.random()<0.03){
+money+=100;
+log("Tralalelo Tralala did something profitable");
+}
+
+marketMood+=Math.random()*0.2-0.1;
+
+ui();
+}
+setInterval(tick,1500);
+
+/* =================== ACTIONS =================== */
+function upgrade(t){
+if(money<100)return;
+money-=100;
+biz[t].lvl++;
+log(t+" upgraded");
+}
+
+function hire(){employees++;log("Hired employee");}
+function fire(){if(employees>0){employees--;log("Fired employee");}}
+
+ui();
+log("Simulation started");
+
+/* =================== RANDOM POPUPS =================== */
+setInterval(()=>{
+if(Math.random()<0.02){
+let p=document.createElement("div");
+p.classList.add("popup");
+p.textContent="⚡ RANDOM EVENT!";
+document.body.appendChild(p);
+setTimeout(()=>p.remove(),4000);
+}
+},5000);
+
+/* =================== FAKE SOUND =================== */
+function playClick(){
+let a=new Audio();
+a.src="https://www.soundjay.com/button/beep-07.wav";
+a.play();
+}
+
+document.querySelectorAll(".btn").forEach(b=>b.addEventListener("click",playClick));
+</script>
+
+</body>
+</html>

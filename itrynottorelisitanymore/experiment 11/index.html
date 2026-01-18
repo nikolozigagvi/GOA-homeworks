@@ -1,0 +1,388 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Epic HTML Project — All-in-One Playground</title>
+  <style>
+    :root{--bg:#0f1724;--card:#0b1220;--muted:#9aa4b2;--accent:#06b6d4;--glass:rgba(255,255,255,0.04)}
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter,ui-sans-serif,system-ui,-apple-system,Segoe UI,Roboto,'Helvetica Neue',Arial;background:linear-gradient(180deg,#071022,#071228 40%,#071022);color:#dbe7f0}
+    header{display:flex;align-items:center;gap:12px;padding:18px 22px;border-bottom:1px solid rgba(255,255,255,0.03)}
+    .logo{display:flex;align-items:center;gap:10px}
+    .logo .mark{width:46px;height:46px;border-radius:10px;background:linear-gradient(135deg,var(--accent),#7c3aed);display:grid;place-items:center;font-weight:700}
+    .title{font-size:18px;font-weight:600}
+    .subtitle{font-size:12px;color:var(--muted)}
+    main{display:grid;grid-template-columns:320px 1fr;gap:18px;padding:18px}
+    nav{background:var(--card);border-radius:12px;padding:14px;height:calc(100vh - 106px);overflow:auto}
+    nav button{display:flex;align-items:center;gap:10px;width:100%;padding:10px;border-radius:8px;border:0;background:transparent;color:inherit;cursor:pointer}
+    nav button.active{background:linear-gradient(90deg,rgba(255,255,255,0.02),rgba(255,255,255,0.01));box-shadow:0 6px 20px rgba(2,6,23,0.6)}
+    section{background:linear-gradient(180deg,rgba(255,255,255,0.02),transparent);padding:18px;border-radius:12px;min-height:400px}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px}
+    .card{background:var(--glass);border-radius:10px;padding:12px;border:1px solid rgba(255,255,255,0.03)}
+    .controls{display:flex;gap:8px;flex-wrap:wrap}
+    input,select,textarea{background:transparent;border:1px solid rgba(255,255,255,0.06);padding:8px;border-radius:8px;color:inherit;width:100%}
+    .small{font-size:13px;color:var(--muted)}
+    footer{padding:12px 22px;color:var(--muted)}
+
+    /* specific features */
+    #canvasPlay{width:100%;height:320px;border-radius:8px;background:linear-gradient(180deg,#071021,#092033);display:block}
+    #paintCanvas{width:100%;height:380px;border-radius:8px;background:#07111a;display:block}
+    .moleGrid{display:grid;grid-template-columns:repeat(4,1fr);gap:8px}
+    .mole{height:68px;border-radius:8px;background:#071c2a;display:grid;place-items:center;cursor:pointer;position:relative;overflow:hidden}
+    .mole .head{width:48px;height:48px;border-radius:50%;background:linear-gradient(180deg,#ffd6a5,#ff9f43);transform:translateY(120%);transition:transform .18s cubic-bezier(.2,.9,.2,1)}
+    .mole.up .head{transform:translateY(0)}
+    .bar{height:8px;border-radius:999px;background:rgba(255,255,255,0.06);overflow:hidden}
+    .bar > i{display:block;height:100%;width:50%;background:linear-gradient(90deg,var(--accent),#7c3aed)}
+    /* responsive */
+    @media (max-width:900px){main{grid-template-columns:1fr}nav{height:auto}}
+
+    /* subtle utilities */
+    .badge{padding:4px 8px;border-radius:999px;background:rgba(255,255,255,0.03);font-size:12px}
+
+    /* table */
+    table{width:100%;border-collapse:collapse}
+    th,td{padding:8px;border-bottom:1px dashed rgba(255,255,255,0.03);text-align:left}
+
+    /* code block */
+    pre{background:#06101a;padding:12px;border-radius:8px;overflow:auto}
+  </style>
+</head>
+<body>
+  <header>
+    <div class="logo">
+      <div class="mark">EP</div>
+      <div>
+        <div class="title">Epic HTML Project</div>
+        <div class="subtitle">Single-file, multi-feature playground — demo + tools</div>
+      </div>
+    </div>
+    <div style="margin-left:auto;display:flex;gap:10px;align-items:center">
+      <div class="badge" id="savedState">Unsaved</div>
+      <button id="themeToggle" title="Toggle theme" style="padding:8px;border-radius:8px;background:transparent;border:1px solid rgba(255,255,255,0.03);cursor:pointer">Toggle Theme</button>
+    </div>
+  </header>
+  <main>
+    <nav>
+      <button data-view="dashboard" class="active">🏠 Dashboard</button>
+      <button data-view="mole">🎯 Whack-a-Mole Game</button>
+      <button data-view="paint">🎨 Paint Canvas</button>
+      <button data-view="audio">🔊 Sound Lab</button>
+      <button data-view="tools">🧰 Utilities</button>
+      <button data-view="notes">📝 Notes & Markdown</button>
+      <button data-view="data">📊 Data Table</button>
+      <button data-view="about">ℹ️ About & Export</button>
+    </nav>
+
+    <section id="content">
+      <!-- Dashboard -->
+      <div data-panel="dashboard">
+        <div class="grid">
+          <div class="card">
+            <h3>Live Canvas Playground</h3>
+            <canvas id="canvasPlay"></canvas>
+            <div class="controls" style="margin-top:8px">
+              <button id="startParticles">Start Particles</button>
+              <button id="stopParticles">Stop</button>
+              <label class="small">Speed <input id="particleSpeed" type="range" min="0" max="5" value="1"></label>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Quick Tools</h3>
+            <div class="controls">
+              <button id="randomColor">Generate Color</button>
+              <button id="copyColor">Copy</button>
+            </div>
+            <div style="margin-top:8px">
+              <div id="colorSwatch" style="height:60px;border-radius:8px;background:#123"></div>
+              <div class="small" id="colorHex">#123456</div>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Calculator</h3>
+            <input id="calcScreen" readonly value="0">
+            <div class="controls" style="margin-top:8px">
+              <button onclick="calcInput('7')">7</button>
+              <button onclick="calcInput('8')">8</button>
+              <button onclick="calcInput('9')">9</button>
+              <button onclick="calcInput('/')">÷</button>
+              <button onclick="calcInput('4')">4</button>
+              <button onclick="calcInput('5')">5</button>
+              <button onclick="calcInput('6')">6</button>
+              <button onclick="calcInput('*')">×</button>
+              <button onclick="calcInput('1')">1</button>
+              <button onclick="calcInput('2')">2</button>
+              <button onclick="calcInput('3')">3</button>
+              <button onclick="calcInput('-')">−</button>
+              <button onclick="calcInput('0')">0</button>
+              <button onclick="calcInput('.')">.</button>
+              <button onclick="calcOp()">=</button>
+              <button onclick="calcInput('+')">+</button>
+              <button onclick="calcClear()">C</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Shortcuts</h3>
+            <ul class="small">
+              <li><strong>M</strong> - toggle mole game</li>
+              <li><strong>P</strong> - paint mode</li>
+              <li><strong>S</strong> - save notes</li>
+            </ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Whack-a-mole -->
+      <div data-panel="mole" style="display:none">
+        <div class="grid">
+          <div class="card" style="grid-column:span 2">
+            <h3>Whack-a-Mole</h3>
+            <div class="moleGrid" id="moleGrid"></div>
+            <div style="display:flex;gap:10px;margin-top:8px;align-items:center">
+              <div>Score: <span id="mScore">0</span></div>
+              <div class="bar" style="width:150px"><i id="mProgress" style="width:0%"></i></div>
+              <button id="mStart">Start</button>
+              <button id="mStop">Stop</button>
+            </div>
+          </div>
+          <div class="card">
+            <h3>Highscores</h3>
+            <ul id="mHigh" class="small"></ul>
+          </div>
+        </div>
+      </div>
+
+      <!-- Paint -->
+      <div data-panel="paint" style="display:none">
+        <div class="grid">
+          <div class="card" style="grid-column:1fr">
+            <h3>Paint Canvas</h3>
+            <canvas id="paintCanvas"></canvas>
+            <div style="display:flex;gap:8px;margin-top:8px">
+              <input id="brushSize" type="range" min="1" max="60" value="8">
+              <input id="brushColor" type="color" value="#ff4d6d">
+              <button id="erase">Eraser</button>
+              <button id="clearCanvas">Clear</button>
+              <button id="saveImage">Save PNG</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Tools</h3>
+            <p class="small">Draw with mouse/touch. Use keyboard shortcuts: B - brush, E - eraser, C - clear.</p>
+            <div class="small"><strong>Tips:</strong> hold Shift for straight lines.</div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Audio Lab -->
+      <div data-panel="audio" style="display:none">
+        <div class="grid">
+          <div class="card">
+            <h3>Sound Lab</h3>
+            <div class="controls">
+              <button id="tonePlay">Play Tone</button>
+              <input id="freq" type="range" min="100" max="2000" value="440">
+              <label class="small">Wave <select id="waveType"><option>sine</option><option>square</option><option>triangle</option><option>sawtooth</option></select></label>
+            </div>
+            <div style="margin-top:8px" class="small">Audio uses WebAudio API. No external files needed.</div>
+          </div>
+
+          <div class="card">
+            <h3>Sequencer (mini)</h3>
+            <div id="seq" style="display:flex;gap:6px;flex-wrap:wrap"></div>
+            <div style="margin-top:8px"><button id="seqPlay">Play Sequence</button><button id="seqStop">Stop</button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Utilities -->
+      <div data-panel="tools" style="display:none">
+        <div class="grid">
+          <div class="card">
+            <h3>Local Storage Explorer</h3>
+            <textarea id="lsDump" rows="6" placeholder='localStorage JSON'></textarea>
+            <div class="controls" style="margin-top:8px">
+              <button id="lsLoad">Load</button>
+              <button id="lsSave">Save</button>
+              <button id="lsClear">Clear</button>
+            </div>
+          </div>
+
+          <div class="card">
+            <h3>Random Data Generator</h3>
+            <div class="controls"><button id="genUsers">Generate 8 Users</button></div>
+            <pre id="genOut">[]</pre>
+          </div>
+
+          <div class="card">
+            <h3>Mini Terminal</h3>
+            <input id="termIn" placeholder="type: hello | date | clear">
+            <pre id="termOut" style="height:120px;overflow:auto;background:#051219;padding:8px;border-radius:6px">> ready</pre>
+          </div>
+        </div>
+      </div>
+
+      <!-- Notes -->
+      <div data-panel="notes" style="display:none">
+        <div class="grid">
+          <div class="card" style="grid-column:1fr">
+            <h3>Notes (Markdown)</h3>
+            <div style="display:flex;gap:8px">
+              <textarea id="notes" style="height:250px;flex:1" placeholder="Write markdown..."># Hello\nThis is your playground.</textarea>
+              <div style="width:50%;padding-left:8px"><div id="mdPreview" style="height:250px;overflow:auto;background:#06101a;padding:10px;border-radius:6px"></div></div>
+            </div>
+            <div style="margin-top:8px;display:flex;gap:8px"><button id="saveNotes">Save</button><button id="exportMD">Export .md</button></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Data Table -->
+      <div data-panel="data" style="display:none">
+        <div class="card">
+          <h3>Data Table</h3>
+          <table id="dataTable"><thead><tr><th>Name</th><th>Score</th><th>Actions</th></tr></thead><tbody></tbody></table>
+          <div style="margin-top:8px;display:flex;gap:8px"><input id="newName" placeholder="name"><input id="newScore" placeholder="score"><button id="addRow">Add</button></div>
+        </div>
+      </div>
+
+      <!-- About -->
+      <div data-panel="about" style="display:none">
+        <div class="card">
+          <h3>About & Export</h3>
+          <p class="small">This single-file demo packs many small tools you can reuse. Save the file, open locally, and tinker.</p>
+          <div style="display:flex;gap:8px;margin-top:8px"><button id="exportHTML">Download HTML</button><button id="exportPNG">Screenshot Canvas</button></div>
+          <h4 style="margin-top:12px">Shortcuts & Hints</h4>
+          <pre class="small">M: Mole | P: Paint | S: Save notes | Ctrl+S: export HTML</pre>
+        </div>
+      </div>
+
+    </section>
+  </main>
+  <footer>Built with vanilla HTML/CSS/JS • Single file • Offline</footer>
+
+<script>
+// small app router
+const nav = document.querySelectorAll('nav button');
+const panels = document.querySelectorAll('[data-panel]');
+nav.forEach(b=>b.addEventListener('click',()=>{nav.forEach(x=>x.classList.remove('active'));b.classList.add('active');showPanel(b.dataset.view)}));
+function showPanel(name){panels.forEach(p=>p.style.display=p.dataset.panel===name?'block':'none');}
+
+// persistent saved flag
+function markSaved(v){document.getElementById('savedState').innerText=v? 'Saved' : 'Unsaved'}
+
+// particles canvas
+(()=>{
+  const c=document.getElementById('canvasPlay');c.width=c.clientWidth*devicePixelRatio;c.height=c.clientHeight*devicePixelRatio;const ctx=c.getContext('2d');ctx.scale(devicePixelRatio,devicePixelRatio);
+  let running=false,particles=[];let speed=1;
+  function addParticle(){particles.push({x:Math.random()*c.clientWidth,y:Math.random()*c.clientHeight,vx:(Math.random()-0.5)*2*speed,vy:(Math.random()-0.5)*2*speed,r:2+Math.random()*4})}
+  for(let i=0;i<60;i++) addParticle();
+  function frame(){ctx.clearRect(0,0,c.clientWidth,c.clientHeight);particles.forEach(p=>{p.x+=p.vx;p.y+=p.vy; if(p.x<0||p.x>c.clientWidth) p.vx*=-1; if(p.y<0||p.y>c.clientHeight) p.vy*=-1; ctx.beginPath(); ctx.arc(p.x,p.y,p.r,0,Math.PI*2); ctx.fillStyle='rgba(6,182,212,0.9)'; ctx.fill();}); if(running) requestAnimationFrame(frame);} 
+  document.getElementById('startParticles').onclick=()=>{running=true;frame()}
+  document.getElementById('stopParticles').onclick=()=>{running=false}
+  document.getElementById('particleSpeed').oninput=e=>{speed=Number(e.target.value);particles.forEach(p=>{p.vx*=1; p.vy*=1})}
+})();
+
+// color generator
+(()=>{const sw=document.getElementById('colorSwatch');const hx=document.getElementById('colorHex');document.getElementById('randomColor').onclick=()=>{const c = '#'+Math.floor(Math.random()*16777215).toString(16).padStart(6,'0');sw.style.background=c;hx.innerText=c};document.getElementById('copyColor').onclick=()=>{navigator.clipboard.writeText(document.getElementById('colorHex').innerText||'');alert('copied')};})();
+
+// calculator
+let calcValue='0';function calcInput(v){ if(calcValue==='0' && v!=='.' ) calcValue=v; else calcValue += v; document.getElementById('calcScreen').value=calcValue }
+function calcOp(){ try{ const res=Function('return '+calcValue)(); calcValue=String(Number(res.toFixed(10))); document.getElementById('calcScreen').value=calcValue }catch(e){document.getElementById('calcScreen').value='ERR'}}
+function calcClear(){calcValue='0';document.getElementById('calcScreen').value=calcValue}
+
+// whack-a-mole
+(()=>{
+  const grid=document.getElementById('moleGrid');const mScore=document.getElementById('mScore');const mProgress=document.getElementById('mProgress');
+  let score=0,interval=null,upIndex=null;const highs = JSON.parse(localStorage.getItem('mHighs')||'[]');const highList=document.getElementById('mHigh');function renderHighs(){highList.innerHTML='';highs.slice().sort((a,b)=>b-a).slice(0,6).forEach(s=>{const li=document.createElement('li');li.innerText=s;highList.appendChild(li)})}
+  renderHighs(); for(let i=0;i<12;i++){const el=document.createElement('div');el.className='mole';el.innerHTML='<div class="head"></div>';el.addEventListener('click',()=>{if(el.classList.contains('up')){score+=1;mScore.innerText=score;el.classList.remove('up');mProgress.style.width=Math.min(100,score*4)+'%'}});grid.appendChild(el)}
+  function tick(){const cells=grid.children; if(upIndex!==null) cells[upIndex].classList.remove('up'); upIndex=Math.floor(Math.random()*cells.length); cells[upIndex].classList.add('up');}
+  document.getElementById('mStart').onclick=()=>{score=0;mScore.innerText=score;interval=setInterval(tick,700);tick()}
+  document.getElementById('mStop').onclick=()=>{clearInterval(interval);interval=null;if(score>0){highs.push(score);localStorage.setItem('mHighs',JSON.stringify(highs));renderHighs()}};
+})();
+
+// paint canvas
+(()=>{
+  const c=document.getElementById('paintCanvas');c.width=c.clientWidth*devicePixelRatio;c.height=c.clientHeight*devicePixelRatio;const ctx=c.getContext('2d');ctx.scale(devicePixelRatio,devicePixelRatio);ctx.lineCap='round';let drawing=false;let last=null; let brushSize=document.getElementById('brushSize');let brushColor=document.getElementById('brushColor');
+  function pos(e){const r=c.getBoundingClientRect(); const t = e.touches?e.touches[0]:e; return {x:(t.clientX-r.left),y:(t.clientY-r.top)} }
+  c.addEventListener('pointerdown',e=>{drawing=true;last=pos(e)});
+  c.addEventListener('pointermove',e=>{if(!drawing) return; const p=pos(e); ctx.strokeStyle=brushColor.value; ctx.lineWidth=brushSize.value; ctx.beginPath(); ctx.moveTo(last.x,last.y); ctx.lineTo(p.x,p.y); ctx.stroke(); last=p;});
+  c.addEventListener('pointerup',()=>{drawing=false;last=null});
+  document.getElementById('clearCanvas').onclick=()=>{ctx.clearRect(0,0,c.clientWidth,c.clientHeight)}
+  document.getElementById('erase').onclick=()=>{ctx.strokeStyle='rgba(7,17,26,1)';}
+  document.getElementById('saveImage').onclick=()=>{const link=document.createElement('a');link.href=c.toDataURL('image/png');link.download='painting.png';link.click()}
+  // keyboard shortcuts
+  window.addEventListener('keydown',e=>{if(e.key==='b'||e.key==='B'){brushColor.value='#ff4d6d'} if(e.key==='e'||e.key==='E'){ctx.strokeStyle='rgba(7,17,26,1)'} if(e.key==='c'||e.key==='C'){ctx.clearRect(0,0,c.clientWidth,c.clientHeight)}})
+})();
+
+// audio lab
+(()=>{
+  const ac = new (window.AudioContext||window.webkitAudioContext)(); let osc=null; document.getElementById('tonePlay').onclick=()=>{
+    if(osc){osc.stop();osc=null;return}
+    osc = ac.createOscillator(); const gain=ac.createGain(); gain.gain.value=0.05; osc.type=document.getElementById('waveType').value; osc.frequency.value=document.getElementById('freq').value; osc.connect(gain); gain.connect(ac.destination); osc.start(); setTimeout(()=>{if(osc){osc.stop();osc=null}},800);
+  }
+  document.getElementById('seqPlay').onclick=()=>{const seq=document.getElementById('seq'); if(seq.dataset.running) return; seq.dataset.running='1'; const notes=[220,293,330,392,440,554,660,880]; let i=0; const int=setInterval(()=>{const o=ac.createOscillator(); const g=ac.createGain(); g.gain.value=0.04; o.type='sine'; o.frequency.value=notes[i%notes.length]; o.connect(g); g.connect(ac.destination); o.start(); setTimeout(()=>o.stop(),200); i++; if(!seq.dataset.running) clearInterval(int)},250);}
+  document.getElementById('seqStop').onclick=()=>{document.getElementById('seq').dataset.running=''}
+})();
+
+// local storage explorer
+(()=>{
+  const dump=document.getElementById('lsDump'); document.getElementById('lsLoad').onclick=()=>{try{dump.value=JSON.stringify(localStorage,null,2)}catch(e){dump.value='{}'}}
+  document.getElementById('lsSave').onclick=()=>{try{const obj=JSON.parse(dump.value);Object.keys(obj).forEach(k=>localStorage.setItem(k,JSON.stringify(obj[k])));alert('saved')}catch(e){alert('invalid json')}}
+  document.getElementById('lsClear').onclick=()=>{if(confirm('clear localStorage?')){localStorage.clear();alert('cleared')}}
+})();
+
+// random data generator
+(()=>{document.getElementById('genUsers').onclick=()=>{const out=[];for(let i=0;i<8;i++){out.push({id:i+1,name:['Alex','Sam','Lee','Jo','Kira','Omar','Zoe','Mina'][Math.floor(Math.random()*8)],score:Math.floor(Math.random()*1000)})}document.getElementById('genOut').innerText=JSON.stringify(out,null,2)}})();
+
+// mini terminal
+(()=>{const inpt=document.getElementById('termIn');const out=document.getElementById('termOut');document.getElementById('termIn').addEventListener('keydown',e=>{if(e.key==='Enter'){const v=inpt.value.trim();if(!v) return;out.innerText+='\n> '+v; if(v==='hello') out.innerText+='\n> hi'; else if(v==='date') out.innerText+='\n'+new Date(); else if(v==='clear'){out.innerText='> ready'} else out.innerText+='\n> unknown command'; inpt.value=''; out.scrollTop=out.scrollHeight}})})();
+
+// markdown renderer (simple)
+(()=>{const md=document.getElementById('notes');const pr=document.getElementById('mdPreview');function render(){let text=md.value; // very small markdown-ish: headers + code + bold + lists
+  text = text.replace(/(^|\n)###### (.*)/g,'$1<h6>$2</h6>');
+  text = text.replace(/(^|\n)##### (.*)/g,'$1<h5>$2</h5>');
+  text = text.replace(/(^|\n)#### (.*)/g,'$1<h4>$2</h4>');
+  text = text.replace(/(^|\n)### (.*)/g,'$1<h3>$2</h3>');
+  text = text.replace(/(^|\n)## (.*)/g,'$1<h2>$2</h2>');
+  text = text.replace(/(^|\n)# (.*)/g,'$1<h1>$2</h1>');
+  text = text.replace(/\*\*(.*?)\*\*/g,'<strong>$1</strong>');
+  text = text.replace(/`([^`]+)`/g,'<code>$1</code>');
+  text = text.replace(/(^|\n)\* (.*)/g,'$1<li>$2</li>');
+  text = text.replace(/(<li>.*<\/li>)/g,'<ul>$1</ul>');
+  pr.innerHTML=text.replace(/\n/g,'<br>');
+}
+md.addEventListener('input',()=>{render();markSaved(false)});document.getElementById('saveNotes').onclick=()=>{localStorage.setItem('notes',md.value);markSaved(true);alert('notes saved')};document.getElementById('exportMD').onclick=()=>{const b=new Blob([md.value],{type:'text/markdown'});const u=URL.createObjectURL(b);const a=document.createElement('a');a.href=u;a.download='notes.md';a.click();URL.revokeObjectURL(u)}; // load
+if(localStorage.getItem('notes')){md.value=localStorage.getItem('notes');render()}else render();
+})();
+
+// data table
+(()=>{const tb=document.querySelector('#dataTable tbody');function render(){tb.innerHTML='';const data=JSON.parse(localStorage.getItem('dataRows')||'[]');data.forEach((r,i)=>{const tr=document.createElement('tr');tr.innerHTML=`<td>${r.name}</td><td>${r.score}</td><td><button data-i="${i}" class="del">Delete</button></td>`;tb.appendChild(tr)});
+  tb.querySelectorAll('.del').forEach(b=>b.addEventListener('click',e=>{const i=Number(e.target.dataset.i);const data=JSON.parse(localStorage.getItem('dataRows')||'[]');data.splice(i,1);localStorage.setItem('dataRows',JSON.stringify(data));render()}))}
+render();document.getElementById('addRow').onclick=()=>{const n=document.getElementById('newName').value||'anon';const s=Number(document.getElementById('newScore').value)||0;const data=JSON.parse(localStorage.getItem('dataRows')||'[]');data.push({name:n,score:s});localStorage.setItem('dataRows',JSON.stringify(data));render()}
+})();
+
+// export html
+(()=>{document.getElementById('exportHTML').onclick=()=>{const html=document.documentElement.outerHTML; const b=new Blob([html],{type:'text/html'}); const u=URL.createObjectURL(b); const a=document.createElement('a'); a.href=u; a.download='epic_playground.html'; a.click(); URL.revokeObjectURL(u)}
+  document.getElementById('exportPNG').onclick=()=>{const c=document.getElementById('canvasPlay'); const a=document.createElement('a'); a.href=c.toDataURL('image/png'); a.download='canvas.png'; a.click()}
+  window.addEventListener('keydown',e=>{if((e.ctrlKey||e.metaKey)&&e.key.toLowerCase()==='s'){e.preventDefault();document.getElementById('exportHTML').click();}})
+})();
+
+// router shortcuts
+window.addEventListener('keydown',e=>{if(e.key==='m' || e.key==='M'){document.querySelector('[data-view="mole"]').click()} if(e.key==='p'||e.key==='P'){document.querySelector('[data-view="paint"]').click()} if(e.key==='s'||e.key==='S'){document.getElementById('saveNotes').click()}})
+
+// theme toggle (super simple)
+document.getElementById('themeToggle').onclick=()=>{document.body.style.filter = document.body.style.filter? '':'invert(.02) hue-rotate(180deg)';}
+
+// initializations
+(function(){ // create mole grid placeholders filled earlier
+  // ensure canvases sized properly on load
+  setTimeout(()=>{document.getElementById('canvasPlay').dispatchEvent(new Event('resize'))},200);
+})();
+
+</script>
+</body>
+</html>

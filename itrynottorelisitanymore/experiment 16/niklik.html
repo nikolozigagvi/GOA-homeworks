@@ -1,0 +1,381 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>NIKLIK OS v8</title>
+<style>
+*{margin:0;padding:0;box-sizing:border-box;font-family:Segoe UI,Arial,sans-serif}
+body{background:black;overflow:hidden}
+:root{--bg:#1c1f26;--panel:#151820;--accent:#4cffc3;--text:#fff}
+
+/* LOGIN */
+#loginScreen{position:fixed;inset:0;background:black;color:white;display:flex;align-items:center;justify-content:center;flex-direction:column}
+#loginScreen input{padding:8px;margin-top:10px;width:200px}
+#loginScreen button{margin-top:10px;padding:6px 12px;cursor:pointer}
+
+/* DESKTOP */
+#desktop{display:none;width:100vw;height:100vh;background:var(--bg);color:var(--text);}
+#icons{padding:10px;position:relative;}
+.icon{width:80px;text-align:center;cursor:pointer;margin:10px;display:inline-block;position:absolute;}
+.icon:hover{background:rgba(255,255,255,0.1);border-radius:6px}
+
+/* TASKBAR */
+#taskbar{position:absolute;bottom:0;width:100%;height:42px;background:var(--panel);display:flex;align-items:center;padding:0 10px}
+#startBtn{background:var(--accent);color:black;padding:6px 14px;border-radius:8px;cursor:pointer}
+#clock{margin-left:auto}
+
+/* WINDOWS */
+.window{position:absolute;width:400px;height:300px;background:var(--panel);border-radius:10px;box-shadow:0 0 25px rgba(0,0,0,.7);}
+.titlebar{padding:8px;background:rgba(255,255,255,.05);display:flex;justify-content:space-between;cursor:move;}
+.closeBtn{cursor:pointer}
+.windowContent{padding:10px;height:calc(100% - 36px);overflow:auto;}
+.resize{width:12px;height:12px;background:var(--accent);position:absolute;right:4px;bottom:4px;cursor:se-resize}
+
+/* CONTEXT MENU */
+#contextMenu{position:fixed;background:var(--panel);border-radius:6px;display:none;z-index:9999}
+.contextItem{padding:8px 12px;cursor:pointer}
+.contextItem:hover{background:rgba(255,255,255,0.1)}
+
+/* NOTIFICATIONS */
+#notify{position:fixed;top:20px;right:20px;background:var(--panel);padding:10px;border-radius:8px;display:none}
+button{cursor:pointer;margin-top:5px}
+img.zoomable{transition: transform 0.2s;}
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="loginScreen">
+<h1>NIKLIK OS v8</h1>
+<input id="usernameInput" placeholder="Username">
+<input id="passwordInput" type="password" placeholder="Password">
+<button onclick="login()">Login</button>
+<button onclick="resetPassword()">Forgot Password</button>
+</div>
+
+<!-- DESKTOP -->
+<div id="desktop">
+<div id="icons"></div>
+<div id="taskbar">
+<div id="startBtn" onclick="createFile()">New File</div>
+<div id="clock"></div>
+</div>
+</div>
+
+<!-- CONTEXT MENU -->
+<div id="contextMenu">
+<div class="contextItem" onclick="createFile()">New File</div>
+<div class="contextItem" onclick="createFolder()">New Folder</div>
+<div class="contextItem" onclick="deleteItem()">Delete</div>
+</div>
+
+<!-- NOTIFICATIONS -->
+<div id="notify"></div>
+
+<script>
+/* =======================
+        STATE
+======================= */
+let currentUser=null;
+let zIndex=1;
+let fileSystem=[];
+let focusedItem=null;
+let openWindows=[];
+
+/* =======================
+        LOGIN & PASSWORD
+======================= */
+function login(){
+    let user=usernameInput.value.trim();
+    let pass=passwordInput.value;
+    if(!user){alert("Enter username");return;}
+    let storedPass=localStorage.getItem("niklik_pass_"+user);
+    if(storedPass && storedPass!==pass){alert("Wrong password");return;}
+    if(!storedPass) localStorage.setItem("niklik_pass_"+user,pass);
+    currentUser=user;
+    loadFileSystem();
+    loginScreen.style.display="none";
+    desktop.style.display="block";
+    setupDefaultIcons();
+    renderDesktop();
+    notify("Welcome "+currentUser);
+}
+
+function resetPassword(){
+    let user=usernameInput.value.trim();
+    if(!user){alert("Enter username");return;}
+    let newPass=prompt("Enter new password:");
+    if(!newPass)return;
+    localStorage.setItem("niklik_pass_"+user,newPass);
+    alert("Password reset for "+user);
+}
+
+/* =======================
+        FILE SYSTEM
+======================= */
+function loadFileSystem(){
+    let data=localStorage.getItem("niklik_fs_"+currentUser);
+    fileSystem=data?JSON.parse(data):[];
+}
+function saveFileSystem(){
+    localStorage.setItem("niklik_fs_"+currentUser,JSON.stringify(fileSystem));
+}
+
+/* =======================
+        DESKTOP
+======================= */
+function renderDesktop(){
+    icons.innerHTML="";
+    fileSystem.forEach(item=>{
+        const icon=document.createElement("div");
+        icon.className="icon";
+        let emoji='📄';
+        if(item.type==='folder') emoji='📁';
+        else if(item.type==='game') emoji='🎮';
+        else if(item.type==='video') emoji='🎬';
+        else if(item.type==='image') emoji='🖼️';
+        else if(item.type==='browser') emoji='🌐';
+        else if(item.type==='shutdown') emoji='⏻';
+        icon.innerHTML=emoji+"<br>"+item.name;
+        icon.style.left=(item.x||10)+"px";
+        icon.style.top=(item.y||10)+"px";
+        icon.onmousedown=e=>startDragIcon(e,item,icon);
+        icon.ondblclick=()=>openItem(item);
+        icon.oncontextmenu=e=>{e.preventDefault();focusedItem=item;showContextMenu(e.clientX,e.clientY);};
+        icons.appendChild(icon);
+    });
+}
+
+/* =======================
+        DEFAULT ICONS
+======================= */
+function setupDefaultIcons(){
+    const defaults=[
+        {name:'Games',type:'folder',x:20,y:20,content:[
+            {name:'Clicker',type:'game'},
+            {name:'RPS',type:'game'},
+            {name:'Number Guess',type:'game'},
+            {name:'Math Challenge',type:'game'},
+            {name:'Memory',type:'game'}
+        ]},
+        {name:'Videos',type:'folder',x:120,y:20,content:[
+            {name:'Video1',type:'video',content:'https://www.w3schools.com/html/mov_bbb.mp4'},
+            {name:'Video2',type:'video',content:'https://www.w3schools.com/html/movie.mp4'},
+            {name:'Video3',type:'video',content:'https://www.w3schools.com/html/mov_bbb.mp4'}
+        ]},
+        {name:'Pictures',type:'folder',x:220,y:20,content:[
+            {name:'Pic1',type:'image',content:'https://via.placeholder.com/150'},
+            {name:'Pic2',type:'image',content:'https://via.placeholder.com/200'},
+            {name:'Pic3',type:'image',content:'https://via.placeholder.com/250'}
+        ]},
+        {name:'Browser',type:'browser',x:320,y:20,content:[]},
+        {name:'Shutdown',type:'shutdown',x:420,y:20}
+    ];
+    defaults.forEach(d=>{
+        if(!fileSystem.find(f=>f.name===d.name)){fileSystem.push(d);}
+    });
+    saveFileSystem();
+}
+
+/* =======================
+        CREATE FILE/FOLDER
+======================= */
+function createFile(){
+    let name=prompt("File name:");
+    if(!name)return;
+    fileSystem.push({name:name,type:'file',content:"",x:10,y:10});
+    saveFileSystem();renderDesktop();
+}
+function createFolder(){
+    let name=prompt("Folder name:");
+    if(!name)return;
+    fileSystem.push({name:name,type:'folder',content:[],x:10,y:10});
+    saveFileSystem();renderDesktop();
+}
+
+/* =======================
+        DELETE ITEM
+======================= */
+function deleteItem(){
+    if(!focusedItem)return;
+    if(!confirm("Delete "+focusedItem.name+"?")) return;
+    fileSystem=fileSystem.filter(f=>f!==focusedItem);
+    saveFileSystem();renderDesktop();
+    hideContextMenu();
+}
+
+/* =======================
+        CONTEXT MENU
+======================= */
+function showContextMenu(x,y){contextMenu.style.left=x+"px";contextMenu.style.top=y+"px";contextMenu.style.display="block";}
+function hideContextMenu(){contextMenu.style.display="none";focusedItem=null;}
+document.addEventListener("click",hideContextMenu);
+
+/* =======================
+        DRAG ICONS
+======================= */
+let dragIcon=null,dragOffsetX=0,dragOffsetY=0;
+function startDragIcon(e,item,icon){
+    dragIcon=icon;
+    dragOffsetX=e.clientX-icon.offsetLeft;
+    dragOffsetY=e.clientY-icon.offsetTop;
+    document.onmousemove=dragIconMove;
+    document.onmouseup=stopDragIcon;
+}
+function dragIconMove(e){
+    if(!dragIcon)return;
+    dragIcon.style.left=(e.clientX-dragOffsetX)+"px";
+    dragIcon.style.top=(e.clientY-dragOffsetY)+"px";
+}
+function stopDragIcon(){
+    if(dragIcon){
+        let item=fileSystem.find(f=>f.name===focusedItem?.name)||fileSystem.find(f=>f.x===parseInt(dragIcon.style.left));
+        if(item){item.x=parseInt(dragIcon.style.left);item.y=parseInt(dragIcon.style.top);}
+        dragIcon=null;
+        saveFileSystem();
+    }
+    document.onmousemove=null;
+    document.onmouseup=null;
+}
+
+/* =======================
+        OPEN ITEM
+======================= */
+function openItem(item){
+    if(item.type==='file'){openFileWindow(item);}
+    else if(item.type==='folder'){openFolderWindow(item);}
+    else if(item.type==='game'){openGameWindow(item);}
+    else if(item.type==='video'){openVideoWindow(item);}
+    else if(item.type==='image'){openImageWindow(item);}
+    else if(item.type==='browser'){openBrowserWindow();}
+    else if(item.type==='shutdown'){shutdown();}
+}
+
+/* =======================
+        WINDOWS
+======================= */
+function createWindow(title,content){
+    const win=document.createElement("div");
+    win.className="window";
+    win.style.zIndex=++zIndex;
+    win.innerHTML=`<div class="titlebar">${title}<span class="closeBtn">✕</span></div><div class="windowContent">${content}</div>`;
+    desktop.appendChild(win);
+    dragWindow(win);
+    win.querySelector(".closeBtn").onclick=()=>{desktop.removeChild(win);openWindows=openWindows.filter(w=>w!==win);};
+    openWindows.push(win);
+    return win;
+}
+function dragWindow(win){
+    let moving=false,x=0,y=0;
+    const bar=win.querySelector(".titlebar");
+    bar.onmousedown=e=>{moving=true;x=e.clientX-win.offsetLeft;y=e.clientY-win.offsetTop;win.style.zIndex=++zIndex;};
+    document.onmousemove=e=>{if(!moving)return;win.style.left=e.clientX-x+"px";win.style.top=e.clientY-y+"px";};
+    document.onmouseup=()=>moving=false;
+}
+
+/* =======================
+        FILE/FOLDER WINDOWS
+======================= */
+function openFileWindow(item){
+    const win=createWindow(item.name,`<textarea style="width:100%;height:calc(100% - 40px)">${item.content}</textarea><div style="text-align:right"><button onclick="saveContent(this,'${item.name}')">Save</button></div>`);
+}
+function saveContent(button,name){
+    const win=button.closest(".window");
+    const ta=win.querySelector("textarea");
+    let item=fileSystem.find(f=>f.name===name);
+    if(item){item.content=ta.value;saveFileSystem();notify("Saved "+name);}
+}
+function openFolderWindow(folder){
+    let content='';
+    folder.content.forEach(f=>{
+        let emoji='📄';
+        if(f.type==='folder') emoji='📁';
+        else if(f.type==='game') emoji='🎮';
+        else if(f.type==='video') emoji='🎬';
+        else if(f.type==='image') emoji='🖼️';
+        content+=emoji+f.name+'<br>';
+    });
+    createWindow(folder.name,content);
+}
+
+/* =======================
+        GAMES
+======================= */
+function openGameWindow(item){
+    if(item.name==='Clicker'){
+        let count=0;
+        createWindow(item.name,`<div>Click the button!</div><button id="clickerBtn">Click Me</button><div>Count: <span id="clickerCount">0</span></div>`);
+        const btn=document.getElementById('clickerBtn');
+        const span=document.getElementById('clickerCount');
+        btn.onclick=()=>{count++;span.innerText=count;};
+    } else if(item.name==='RPS'){
+        createWindow(item.name,`<div>Choose: <button onclick="rps('Rock')">Rock</button> <button onclick="rps('Paper')">Paper</button> <button onclick="rps('Scissors')">Scissors</button></div><div id="rpsResult"></div>`);
+        window.rps=(choice)=>{const options=['Rock','Paper','Scissors'];const bot=options[Math.floor(Math.random()*3)];document.getElementById('rpsResult').innerText='Bot: '+bot; if(choice===bot)alert('Draw'); else if((choice==='Rock'&&bot==='Scissors')||(choice==='Paper'&&bot==='Rock')||(choice==='Scissors'&&bot==='Paper')) alert('You win'); else alert('You lose');};
+    } else if(item.name==='Number Guess'){
+        const num=Math.floor(Math.random()*5)+1;
+        createWindow(item.name,`<div>Guess a number 1-5</div><input id="guessInput" type="number"><button onclick="guessNum()">Guess</button>`);
+        window.guessNum=()=>{const val=parseInt(document.getElementById('guessInput').value);if(val===num)alert('Correct!');else alert('Wrong!');};
+    } else if(item.name==='Math Challenge'){
+        createWindow(item.name,`<div>2 + 2 = ?</div><input id="mathInput" type="number"><button onclick="checkMath()">Answer</button>`);
+        window.checkMath=()=>{const val=parseInt(document.getElementById('mathInput').value);if(val===4)alert('Correct!');else alert('Wrong!');};
+    } else if(item.name==='Memory'){
+        createWindow(item.name,`<div>Remember this number: 1234</div><input id="memInput"><button onclick="checkMem()">Check</button>`);
+        window.checkMem=()=>{const val=document.getElementById('memInput').value;if(val==='1234')alert('Correct!');else alert('Wrong!');};
+    }
+}
+
+/* =======================
+        VIDEOS
+======================= */
+function openVideoWindow(item){
+    createWindow(item.name,`<video width="100%" height="200" controls><source src="${item.content}" type="video/mp4">Your browser does not support video.</video>`);
+}
+
+/* =======================
+        IMAGES
+======================= */
+function openImageWindow(item){
+    createWindow(item.name,`<img src="${item.content}" class="zoomable" style="width:100%;height:auto;"><br><button onclick="zoomIn(this)">Zoom In</button><button onclick="zoomOut(this)">Zoom Out</button>`);
+    window.zoomIn=(btn)=>{const img=btn.previousElementSibling;img.style.transform="scale("+(parseFloat(img.style.transform.replace(/[^0-9.]/g,''))||1.2)+")";}
+    window.zoomOut=(btn)=>{const img=btn.previousElementSibling;img.style.transform="scale("+(parseFloat(img.style.transform.replace(/[^0-9.]/g,''))||1/1.2)+")";}
+}
+
+/* =======================
+        BROWSER
+======================= */
+function openBrowserWindow(){
+    createWindow("NIKLIK Browser 🌐",`<div>Fake Browser</div><button onclick="downloadFile('downloaded.txt')">Download File</button>`);
+}
+function downloadFile(name){
+    fileSystem.push({name:name,type:'file',content:"Downloaded content",x:20,y:20});
+    saveFileSystem();renderDesktop();notify("Downloaded "+name);
+}
+
+/* =======================
+        SHUTDOWN
+======================= */
+function shutdown(){
+    desktop.style.display="none";
+    loginScreen.style.display="flex";
+    openWindows.forEach(w=>w.remove());
+    openWindows=[];
+    notify("Shutdown complete");
+}
+
+/* =======================
+        NOTIFICATIONS
+======================= */
+function notify(text){
+    notifyBox.innerText=text;
+    notifyBox.style.display="block";
+    setTimeout(()=>notifyBox.style.display="none",2000);
+}
+
+/* =======================
+        CLOCK
+======================= */
+setInterval(()=>clock.innerText=new Date().toLocaleTimeString(),1000);
+</script>
+
+</body>
+</html>

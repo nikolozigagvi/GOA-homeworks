@@ -1,0 +1,260 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<title>God Calculator</title>
+
+<style>
+:root {
+  --bg: #121212;
+  --calc: #1f1f1f;
+  --btn: #333;
+  --btn2: #444;
+  --op: #ff9800;
+  --eq: #00c853;
+  --txt: white;
+}
+
+body.light {
+  --bg: #eee;
+  --calc: #fff;
+  --btn: #dcdcdc;
+  --btn2: #c8c8c8;
+  --op: #ff9500;
+  --eq: #20bf6b;
+  --txt: #111;
+}
+
+body {
+  margin: 0;
+  font-family: system-ui, sans-serif;
+  background: var(--bg);
+  color: var(--txt);
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  height: 100vh;
+}
+
+.calculator {
+  width: 380px;
+  background: var(--calc);
+  border-radius: 22px;
+  padding: 20px;
+  box-shadow: 0 30px 60px rgba(0,0,0,0.6);
+}
+
+.top {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.9rem;
+  margin-bottom: 8px;
+}
+
+.display {
+  background: black;
+  color: lime;
+  font-size: 2.5rem;
+  padding: 15px;
+  border-radius: 15px;
+  text-align: right;
+  overflow-x: auto;
+}
+
+body.light .display {
+  background: #eaeaea;
+  color: #111;
+}
+
+.mode {
+  margin: 10px 0;
+  display: flex;
+  gap: 8px;
+}
+
+.mode button {
+  flex: 1;
+  background: var(--btn2);
+  color: var(--txt);
+  border: none;
+  padding: 8px;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.buttons {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 10px;
+}
+
+button {
+  height: 55px;
+  border-radius: 14px;
+  border: none;
+  cursor: pointer;
+  font-size: 1.1rem;
+  background: var(--btn);
+  color: var(--txt);
+  transition: transform 0.07s ease;
+}
+
+button:active { transform: scale(0.94); }
+
+.op { background: var(--op); }
+.eq { background: var(--eq); grid-column: span 2; }
+.func { background: var(--btn2); }
+
+.history {
+  margin-top: 12px;
+  font-size: 0.85rem;
+  max-height: 120px;
+  overflow-y: auto;
+  opacity: 0.8;
+}
+
+.history div {
+  cursor: pointer;
+  margin-bottom: 4px;
+}
+</style>
+</head>
+
+<body>
+
+<div class="calculator">
+  <div class="top">
+    <span>God Calculator</span>
+    <span onclick="toggleTheme()" style="cursor:pointer">🌙/☀️</span>
+  </div>
+
+  <div id="display" class="display">0</div>
+
+  <div class="mode">
+    <button onclick="setMode('standard')">Standard</button>
+    <button onclick="setMode('scientific')">Scientific</button>
+    <button onclick="setMode('programmer')">Programmer</button>
+  </div>
+
+  <div id="buttons" class="buttons"></div>
+
+  <div id="history" class="history"></div>
+</div>
+
+<script>
+let display = document.getElementById("display");
+let buttonsBox = document.getElementById("buttons");
+let historyBox = document.getElementById("history");
+
+let memory = 0;
+let mode = "standard";
+
+let history = JSON.parse(localStorage.getItem("calc-history") || "[]");
+let theme = localStorage.getItem("theme");
+if (theme === "light") document.body.classList.add("light");
+
+function renderHistory() {
+  historyBox.innerHTML = "";
+  history.forEach(h => {
+    let div = document.createElement("div");
+    div.innerText = h;
+    div.onclick = () => display.innerText = h.split("=")[0].trim();
+    historyBox.appendChild(div);
+  });
+}
+
+renderHistory();
+
+function setMode(m) {
+  mode = m;
+  renderButtons();
+}
+
+function toggleTheme() {
+  document.body.classList.toggle("light");
+  localStorage.setItem("theme", document.body.classList.contains("light") ? "light" : "dark");
+}
+
+function append(v) {
+  if (display.innerText === "0") display.innerText = "";
+  display.innerText += v;
+}
+
+function clearDisplay() { display.innerText = "0"; }
+
+function calculate() {
+  try {
+    let exp = display.innerText
+      .replace(/÷/g,'/')
+      .replace(/×/g,'*')
+      .replace(/√/g,'Math.sqrt');
+
+    let result = Function('"use strict";return (' + exp + ')')();
+    history.unshift(`${display.innerText} = ${result}`);
+    if (history.length > 8) history.pop();
+    localStorage.setItem("calc-history", JSON.stringify(history));
+    renderHistory();
+    display.innerText = result;
+  } catch {
+    display.innerText = "Error";
+  }
+}
+
+function renderButtons() {
+  buttonsBox.innerHTML = "";
+
+  const layouts = {
+    standard: [
+      "7","8","9","÷",
+      "4","5","6","×",
+      "1","2","3","-",
+      "0",".","=","+"
+    ],
+    scientific: [
+      "sin(","cos(","tan(","√(",
+      "π","%","("," )",
+      "7","8","9","÷",
+      "4","5","6","×",
+      "1","2","3","-",
+      "0",".","=","+"
+    ],
+    programmer: [
+      "BIN","OCT","DEC","HEX",
+      "7","8","9","÷",
+      "4","5","6","×",
+      "1","2","3","-",
+      "0","=","+","C"
+    ]
+  };
+
+  layouts[mode].forEach(b => {
+    let btn = document.createElement("button");
+    btn.innerText = b;
+
+    if ("+-×÷=".includes(b)) btn.classList.add(b==="="? "eq":"op");
+    if ("sin cos tan √ π %".includes(b)) btn.classList.add("func");
+
+    btn.onclick = () => {
+      if (b === "=") calculate();
+      else if (b === "C") clearDisplay();
+      else if (b === "π") append("Math.PI");
+      else append(b);
+    };
+
+    buttonsBox.appendChild(btn);
+  });
+}
+
+renderButtons();
+
+// Keyboard support
+document.addEventListener("keydown", e => {
+  if ("0123456789.+-*/()".includes(e.key)) append(e.key);
+  if (e.key === "Enter") calculate();
+  if (e.key === "Escape") clearDisplay();
+  if (e.key === "Backspace") display.innerText = display.innerText.slice(0,-1) || "0";
+});
+</script>
+
+</body>
+</html>

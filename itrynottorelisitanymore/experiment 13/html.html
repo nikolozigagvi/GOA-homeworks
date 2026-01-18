@@ -1,0 +1,326 @@
+<!doctype html>
+<!--
+Discord-like Single-file HTML Project
+Features:
+ - Server list, channel list, message area
+ - Create channels, switch channels
+ - Send messages (with username selection), edit & delete
+ - Message reactions (simple emoji picker)
+ - Image upload preview (client-side only)
+ - LocalStorage persistence (servers, channels, messages)
+ - Dark / Light theme toggle
+ - Simple search and mention highlighting
+ - Responsive layout
+
+How to use: save this file as discord_clone.html and open in your browser.
+This is a front-end mock — no real Discord API calls. All data is stored in localStorage.
+-->
+<html lang="en">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Discord-like HTML Project</title>
+  <style>
+    /* Animations & toast alerts */
+    @keyframes slideUp{from{transform:translateY(20px);opacity:0}to{transform:translateY(0);opacity:1}}
+    @keyframes pop{0%{transform:scale(.9);opacity:0}100%{transform:scale(1);opacity:1}}
+    .toast{position:fixed;bottom:20px;right:20px;background:var(--panel);padding:12px 16px;border-radius:12px;box-shadow:0 20px 40px rgba(0,0,0,.4);animation:slideUp .3s ease;color:inherit;z-index:999}
+    .toast.success{border-left:4px solid var(--success)}
+    .toast.error{border-left:4px solid #ef4444}
+    .fade-in{animation:pop .25s ease}
+
+    :root{
+      --bg:#0f1720; --panel:#0b1220; --muted:#9aa6b2; --accent:#5865f2; --accent-2:#33a3ff;
+      --msg-bg:#121826; --card:#0b1220; --success:#22c55e;
+      --radius:12px; --glass: rgba(255,255,255,0.03);
+    }
+    [data-theme="light"]{
+      --bg:#f4f7fb; --panel:#ffffff; --muted:#4b5563; --accent:#5865f2; --accent-2:#0ea5e9;
+      --msg-bg:#f1f5f9; --card:#ffffff; --success:#16a34a;
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%;margin:0;font-family:Inter,Segoe UI,Roboto,Arial; background:linear-gradient(180deg,var(--bg),#071226);color:#e6eef6}
+    .app{display:grid;grid-template-columns:72px 220px 1fr; height:100vh; gap:12px;padding:12px}
+    .server-col{background:var(--panel);border-radius:var(--radius);display:flex;flex-direction:column;align-items:center;padding:10px;gap:12px}
+    .server{width:48px;height:48px;border-radius:12px;background:linear-gradient(180deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-weight:700}
+    .channels{background:var(--panel);border-radius:var(--radius);padding:12px;display:flex;flex-direction:column;gap:10px}
+    .server-header{display:flex;align-items:center;gap:10px}
+    .channel-list{background:var(--card);border-radius:8px;padding:8px;flex:1;overflow:auto}
+    .channel{padding:8px;border-radius:6px;cursor:pointer;display:flex;align-items:center;gap:8px}
+    .channel:hover{background:var(--glass)}
+    .channel.active{background:linear-gradient(90deg, rgba(88,101,242,0.12), rgba(51,163,255,0.06));box-shadow:0 6px 20px rgba(10,10,20,0.3)}
+    .main{background:linear-gradient(180deg,var(--card), rgba(0,0,0,0.02));border-radius:var(--radius);display:flex;flex-direction:column;overflow:hidden}
+    .topbar{display:flex;align-items:center;justify-content:space-between;padding:12px 16px;border-bottom:1px solid rgba(255,255,255,0.03)}
+
+    .messages{padding:16px;flex:1;overflow:auto;display:flex;flex-direction:column;gap:12px}
+    .message{display:flex;gap:12px;align-items:flex-start}
+    .avatar{width:40px;height:40px;border-radius:8px;background:linear-gradient(180deg,var(--accent),var(--accent-2));display:flex;align-items:center;justify-content:center;font-weight:700;color:white}
+    .bubble{background:var(--msg-bg);padding:8px 12px;border-radius:10px;max-width:70%;position:relative}
+    .bubble .meta{font-size:12px;color:var(--muted);margin-bottom:6px}
+    .bubble img{max-width:320px;border-radius:8px;margin-top:6px}
+    .composer{padding:12px;border-top:1px solid rgba(255,255,255,0.03);display:flex;gap:8px;align-items:center}
+    .input{flex:1;display:flex;gap:8px}
+    input[type=text],textarea{width:100%;padding:10px;border-radius:8px;border:1px solid rgba(255,255,255,0.04);background:transparent;color:inherit}
+    button{border:0;padding:8px 12px;border-radius:8px;background:var(--accent);color:white;cursor:pointer}
+    .secondary{background:transparent;border:1px solid rgba(255,255,255,0.04);color:var(--muted)}
+    .sidebar-actions{display:flex;flex-direction:column;gap:8px}
+    .channel-controls{display:flex;gap:8px;align-items:center}
+    .small{padding:6px 8px;border-radius:8px;font-size:13px}
+    .msg-actions{display:flex;gap:8px;margin-left:auto}
+    .reaction{cursor:pointer;padding:4px 6px;border-radius:8px;background:rgba(255,255,255,0.03)}
+    .search{display:flex;gap:8px;align-items:center}
+    .muted{color:var(--muted)}
+    .file-preview{max-width:200px;max-height:120px;border-radius:8px}
+    .controls{display:flex;gap:8px}
+    .empty{opacity:0.6;padding:40px;text-align:center}
+    .mobile-hide{display:block}
+    @media(max-width:880px){.app{grid-template-columns:1fr;grid-template-rows:72px auto 1fr}.server-col{display:none}.channels{display:none}.mobile-hide{display:none}}
+  </style>
+</head>
+<body>
+  <div class="app" id="app" data-theme="dark">
+    <div class="server-col">
+      <div class="server">D</div>
+      <div style="flex:1"></div>
+      <div class="small secondary" id="themeToggle">Toggle</div>
+    </div>
+
+    <div class="channels" id="leftPane">
+      <div class="server-header fade-in">
+        <div style="font-weight:700">My Server</div>
+        <div style="margin-left:auto;display:flex;gap:8px">
+          <button class="small" id="addChannelBtn">+ Channel</button>
+          <button class="small" id="resetBtn">Reset</button>
+        </div>
+      </div>
+
+      <div class="channel-list" id="channelList"></div>
+
+      <div style="display:flex;gap:8px;margin-top:8px;align-items:center">
+        <input id="searchInput" type="text" placeholder="Search messages..." />
+        <button id="searchBtn" class="small secondary">Find</button>
+      </div>
+
+    </div>
+
+    <div class="main">
+      <div class="topbar">
+        <div class="title" id="channelTitle"># general</div>
+        <div class="controls">
+          <div class="muted" id="memberCount">3 members</div>
+        </div>
+      </div>
+
+      <div class="messages" id="messages"></div>
+
+      <div class="composer">
+        <div class="avatar" id="currentAvatar">U</div>
+        <div class="input">
+          <select id="userSelect" style="width:140px">
+          </select>
+          <textarea id="messageInput" rows="2" placeholder="Message #general"></textarea>
+        </div>
+        <div style="display:flex;flex-direction:column;gap:8px;align-items:flex-end">
+          <input id="fileInput" type="file" accept="image/*" style="display:none" />
+          <button id="attachBtn" class="secondary">Attach</button>
+          <button id="sendBtn">Send</button>
+        </div>
+      </div>
+    </div>
+  </div>
+
+<script>
+// Simple data model and persistence
+const STORAGE_KEY = 'discord_clone_v1'
+const defaultData = {
+  username: null,
+  users:[{id:'u1',name:'Alex'},{id:'u2',name:'Sam'},{id:'u3',name:'Rita'}],
+  channels:[{id:'c1',name:'general'},{id:'c2',name:'random'}],
+  messages:{ // channelId -> messages
+    c1:[{id:uid(),user:'u1',text:'Welcome to #general!',time:Date.now()}],
+    c2:[]
+  },
+  theme:'dark'
+}
+let state = load() || defaultData;
+if(!state.username){ state.username = prompt('Choose your display name'); save() }
+
+// Utilities
+function uid(){return Math.random().toString(36).slice(2,9)}
+function save(){localStorage.setItem(STORAGE_KEY,JSON.stringify(state))}
+function load(){try{return JSON.parse(localStorage.getItem(STORAGE_KEY))}catch(e){return null}}
+
+// UI refs
+const channelListEl = document.getElementById('channelList')
+const messagesEl = document.getElementById('messages')
+const channelTitle = document.getElementById('channelTitle')
+const userSelect = document.getElementById('userSelect')
+if(state.users && state.users[0] && state.username){ state.users[0].name = state.username }
+const messageInput = document.getElementById('messageInput')
+const sendBtn = document.getElementById('sendBtn')
+const addChannelBtn = document.getElementById('addChannelBtn')
+const attachBtn = document.getElementById('attachBtn')
+const fileInput = document.getElementById('fileInput')
+const themeToggle = document.getElementById('themeToggle')
+const app = document.getElementById('app')
+const searchInput = document.getElementById('searchInput')
+const searchBtn = document.getElementById('searchBtn')
+const resetBtn = document.getElementById('resetBtn')
+
+let activeChannel = state.channels[0]?.id || null
+
+function renderChannels(){
+  channelListEl.innerHTML = ''
+  state.channels.forEach(ch=>{
+    const el = document.createElement('div')
+    el.className = 'channel' + (ch.id===activeChannel? ' active':'')
+    el.innerHTML = `<div>#</div><div style="flex:1">${ch.name}</div><div style="font-size:12px;color:var(--muted)">ID:${ch.id}</div>`
+    el.onclick = ()=>{activeChannel = ch.id; render()}
+    channelListEl.appendChild(el)
+  })
+}
+
+function showToast(msg,type='success'){
+  const t=document.createElement('div');t.className='toast '+type;t.textContent=msg;document.body.appendChild(t);setTimeout(()=>t.remove(),2200)
+}
+
+function renderUsers(){
+  userSelect.innerHTML = ''
+  state.users.forEach(u=>{
+    const opt = document.createElement('option')
+    opt.value = u.id; opt.textContent = u.name
+    userSelect.appendChild(opt)
+  })
+}
+
+function renderMessages(){
+  messagesEl.innerHTML = ''
+  const arr = state.messages[activeChannel] || []
+  if(!arr.length){
+    messagesEl.innerHTML = `<div class="empty muted">No messages in this channel yet. Send the first one!</div>`
+    return
+  }
+  arr.forEach(msg=>{
+    const wrapper = document.createElement('div')
+    wrapper.className = 'message'
+    const user = state.users.find(u=>u.id===msg.user) || {name:'Unknown'}
+    const av = document.createElement('div'); av.className='avatar'; av.textContent = user.name[0]
+    const bubble = document.createElement('div'); bubble.className='bubble'
+    const meta = document.createElement('div'); meta.className='meta'; meta.textContent = `${user.name} • ${new Date(msg.time).toLocaleString()}`
+    bubble.appendChild(meta)
+    const text = document.createElement('div'); text.innerHTML = linkify(escapeHTML(msg.text))
+    bubble.appendChild(text)
+    if(msg.image){
+      const img = document.createElement('img'); img.src = msg.image; img.className='file-preview'
+      bubble.appendChild(img)
+    }
+    const actions = document.createElement('div'); actions.className='msg-actions'
+    const reactBtn = document.createElement('div'); reactBtn.className='reaction'; reactBtn.innerText='🙂 ' + (msg.reactions? msg.reactions.length : '')
+    reactBtn.onclick = ()=>{
+      msg.reactions = msg.reactions || []
+      const existing = msg.reactions.indexOf('🙂')
+      if(existing>-1) msg.reactions.splice(existing,1)
+      else msg.reactions.push('🙂')
+      save(); renderMessages()
+    }
+    const editBtn = document.createElement('div'); editBtn.className='reaction'; editBtn.innerText='Edit'
+    editBtn.onclick = ()=>{ messageInput.value = msg.text; userSelect.value = msg.user; // set for editing
+      sendBtn.dataset.edit = msg.id; messageInput.focus()
+    }
+    const delBtn = document.createElement('div'); delBtn.className='reaction'; delBtn.innerText='Delete'
+    delBtn.onclick = ()=>{ if(confirm('Delete message?')){ state.messages[activeChannel] = state.messages[activeChannel].filter(m=>m.id!==msg.id); save(); render() }}
+    actions.appendChild(reactBtn); actions.appendChild(editBtn); actions.appendChild(delBtn)
+    bubble.appendChild(actions)
+
+    wrapper.appendChild(av); wrapper.appendChild(bubble)
+    messagesEl.appendChild(wrapper)
+  })
+  messagesEl.scrollTop = messagesEl.scrollHeight
+}
+
+function render(){
+  document.body.setAttribute('data-theme', state.theme === 'light' ? 'light' : 'dark')
+  app.setAttribute('data-theme', state.theme === 'light' ? 'light' : 'dark')
+  renderChannels(); renderUsers(); renderMessages();
+  const ch = state.channels.find(c=>c.id===activeChannel)
+  channelTitle.textContent = ch ? '# ' + ch.name : 'No channel'
+}
+
+// actions
+addChannelBtn.onclick = ()=>{
+  const name = prompt('Channel name');
+  if(!name) return showToast('Channel creation cancelled','error');
+  const name4 = prompt('Channel name')
+  if(!name) return
+  const id = 'c'+uid()
+  state.channels.push({id,name}); state.messages[id]=[]; activeChannel=id; save(); render()
+}
+
+sendBtn.onclick = ()=>{
+  const text = messageInput.value.trim(); if(!text && !sendBtn.dataset.image) return
+  const user = userSelect.value || state.users[0].id
+  if(sendBtn.dataset.edit){
+    const mid = sendBtn.dataset.edit
+    const target = (state.messages[activeChannel]||[]).find(m=>m.id===mid)
+    if(target){ target.text = text; }
+    delete sendBtn.dataset.edit
+  } else {
+    const msg = {id:uid(),user,text,time:Date.now()}
+    if(sendBtn.dataset.image) msg.image = sendBtn.dataset.image
+    state.messages[activeChannel] = state.messages[activeChannel] || []
+    state.messages[activeChannel].push(msg)
+  }
+  messageInput.value=''; delete sendBtn.dataset.image; save(); renderMessages(); showToast('Message sent ✔')
+}
+
+attachBtn.onclick = ()=> fileInput.click()
+fileInput.onchange = async (e)=>{
+  const f = e.target.files[0]; if(!f) return
+  const reader = new FileReader(); reader.onload = ()=>{
+    sendBtn.dataset.image = reader.result
+    alert('Image attached — it will be uploaded when you press Send (client-side only).')
+  }
+  reader.readAsDataURL(f)
+}
+
+themeToggle.onclick = ()=>{
+  state.theme = state.theme === 'light' ? 'dark' : 'light'; save(); render()
+}
+
+searchBtn.onclick = ()=>{
+  const q = searchInput.value.trim().toLowerCase()
+  if(!q) return alert('Type something to search')
+  const results = []
+  for(const ch of state.channels){
+    const arr = state.messages[ch.id]||[]
+    for(const m of arr){ if(m.text.toLowerCase().includes(q)) results.push({channel:ch.name,message:m}) }
+  }
+  if(!results.length) return alert('No matches')
+  const first = results[0]
+  activeChannel = state.channels.find(c=>c.name===first.channel).id
+  render()
+  // highlight by temporarily scrolling and flashing the message
+  setTimeout(()=>{
+    const nodes = [...messagesEl.querySelectorAll('.bubble div')]
+    const idx = state.messages[activeChannel].findIndex(m=>m.id===first.message.id)
+    const el = messagesEl.children[idx]
+    if(el) { el.style.outline='3px solid rgba(88,101,242,0.25)'; setTimeout(()=>el.style.outline='',2500) }
+  },200)
+}
+
+resetBtn.onclick = ()=>{ if(confirm('Reset all data to defaults?')){ localStorage.removeItem(STORAGE_KEY); state = JSON.parse(JSON.stringify(defaultData)); activeChannel = state.channels[0].id; save(); render(); }}
+
+// small helpers
+function escapeHTML(s){ return s.replaceAll('&','&amp;').replaceAll('<','&lt;').replaceAll('>','&gt;') }
+function linkify(text){ return text.replace(/(https?:\/\/[^\s]+)/g, '<a href="$1" target="_blank">$1</a>') }
+
+// init
+if(!state.messages) state.messages = {}
+if(!activeChannel && state.channels.length) activeChannel = state.channels[0].id
+render()
+
+// expose some dev helpers
+window.__state = state
+</script>
+</body>
+</html>
