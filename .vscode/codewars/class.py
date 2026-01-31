@@ -1,4 +1,4 @@
-#Convert a Number to a String!
+#Convert a Number to a String
 
 
 def number_to_string(num):
@@ -21,7 +21,7 @@ def make_negative( number ):
 def opposite(number):
     return number * -1
 
-#Convert boolean values to strings 'Yes' or 'No'.
+#Convert boolean values to strings 'Yes' or 'No'
 def bool_to_word(boolean):
     if boolean == True:
         return 'Yes'

@@ -1,0 +1,178 @@
+body {
+  background-color: #e6f2e6; 
+  padding: 20px;
+  color: #000;
+}
+#class {
+  display: flex;
+  flex-wrap: wrap; 
+  gap: 5px;      
+}
+
+h1 {
+  color: #0a5c2f; 
+  text-align: center;
+}
+
+h2 {
+  color: #000;
+  margin-top: 20px;
+}
+
+
+button {
+  background-color: #0a5c2f; 
+  color: white;
+  border: 1px solid #000;
+  padding: 6px 12px;
+  margin: 5px 0;
+  cursor: pointer;
+}
+
+button:hover {
+  background-color: #330a0a; 
+}
+
+
+#class button {
+  display: flex;
+  width: 200px;
+  margin-bottom: 5px;
+}
+
+
+input{
+  padding: 6px;
+  border: 1px solid #000;
+  margin-right: 5px;
+}
+
+
+ul{
+  background-color: white;
+  border: 2px, solid, #0a5c2f;
+  padding: 10px;
+  width: 220px;
+}
+
+li {
+  margin: 4px ;
+  color: #000;
+}
+
+/* html2 */
+.footer{
+  background-color: black;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+.header {
+  background-color: black;
+  display: flex;
+  flex-direction: column;
+  justify-content: flex-end;
+}
+
+#GOA1{
+  text-align: center;
+  color: rgb(8, 92, 8)
+
+}
+
+#sec1{
+    background-color: rgb(8, 92, 8);
+    width: 300px;
+    height: 50px;
+}
+ 
+#GOA2{
+  text-align: left;
+  color: white;
+}
+
+#img{
+  display: flex;
+  align-items:center;
+  justify-content: center;
+
+}
+
+
+#text1{
+  text-align: left;
+  color: white;
+
+}
+
+#sec2{
+  background-color: rgb(8, 92, 8);
+  width: 175px;
+  height: 30px;
+}
+
+
+#a3{
+  display: flex;
+  align-items: end;
+  justify-content: left;
+  
+}
+
+
+
+
+
+/* html3 */
+
+
+.image-row {
+  display: flex;
+  justify-content: space-around;  
+  align-items: flex-start;        
+  flex-wrap: wrap;                
+  margin: 20px 0;
+}
+
+.image-card {
+  text-align: center;            
+  margin: 10px;
+}
+
+.image-card img {
+  width: 300px;                   
+  height: auto;
+  display: block;
+  margin-bottom: 10px;         
+}
+
+.image-card p {
+  font-size: 16px;
+  color: #333;
+}
+
+#name1{
+  color: #06bd58;
+}
+
+#name2{
+  color: #06bd58;
+}
+
+
+#name3{
+  color: #06bd58;
+}
+
+
+
+
+
+
+
+
+
+
+
+
